@@ -62,7 +62,7 @@ userSchema.methods = {
   generateToken: function () {
     const user = this;
     return jwt.sign({ _id: user._id }, process.env.JWT_SECRET ?? "", {
-      expiresIn: 60 * 120,
+      expiresIn: 60 * 120, // 2 hours
     });
   },
 };
