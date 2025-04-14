@@ -1,11 +1,18 @@
-import { AppShellHeader, Box, Group } from "@mantine/core";
+import { Anchor, AppShellHeader, Box, Group } from "@mantine/core";
 import AppIcon from "@common/appIcon/appIcon";
 import LanguageSelect from "@common/languageSelect";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslate } from "@global/localization";
+import { useCallback } from "react";
 
 const Header = () => {
   const { tL } = useTranslate();
+  const navigate = useNavigate();
+
+  const handleLogout = useCallback(() => {
+    window.localStorage.removeItem("token");
+    navigate("/login");
+  }, []);
   return (
     <AppShellHeader h={"10vh"} pl="2.5rem" pr="2.5rem">
       <Group justify="space-between" h="100%">
@@ -14,6 +21,7 @@ const Header = () => {
             <AppIcon />
           </Link>
         </Box>
+        <Anchor onClick={() => handleLogout()}>Logout</Anchor>
         <LanguageSelect />
       </Group>
     </AppShellHeader>

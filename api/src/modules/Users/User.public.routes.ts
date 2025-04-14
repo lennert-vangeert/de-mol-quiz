@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { login, register } from "./User.controller";
 import { authLocal } from "../../middleware/auth/authMiddleware";
+import { login, register } from "./User.controller";
 
-const router = Router();
-router.post("/login", authLocal, login);
-router.post("/register", register);
+const userPublicRouter = Router();
+userPublicRouter.post("/login", authLocal, login);
+userPublicRouter.post("/register", register);
 
-export default router;
+export default userPublicRouter;

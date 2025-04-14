@@ -2,20 +2,24 @@ import compression from "compression";
 import cors from "cors";
 import express, { Express } from "express";
 import helmet from "helmet";
+import passport from "passport";
 
 const registerMiddleware = (app: Express) => {
-  //cors
-    app.use(cors())
+  // Enable CORS
+  app.use(cors());
 
-  //json parser
+  // JSON parser middleware
   app.use(express.json());
 
-  //helmet
-    app.use(helmet.noSniff());
-    app.use(helmet.hidePoweredBy());
-    app.use(helmet.xssFilter());
+  // Initialize Passport before defining routes!
+  app.use(passport.initialize());
 
-  //compression
+  // Helmet for security HTTP headers
+  app.use(helmet.noSniff());
+  app.use(helmet.hidePoweredBy());
+  app.use(helmet.xssFilter());
+
+  // Compression middleware
   app.use(compression());
 };
 

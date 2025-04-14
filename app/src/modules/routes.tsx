@@ -5,15 +5,15 @@ import {
   useRouteError,
   Navigate,
 } from "react-router-dom";
-import PageWrapper from "./sections/pageWrapper";
 import { I18nProvider, PushLocaleToRoute } from "@global/localization";
 import { publicRoutes } from "./public";
 import ErrorPage from "./misc/errorPage";
+import { privateRoutes } from "./private";
 
 function Root({ children }: { children?: React.ReactNode }) {
   return (
     <I18nProvider>
-      <PageWrapper>{children ?? <Outlet />}</PageWrapper>
+      {children ?? <Outlet />}
     </I18nProvider>
   );
 }
@@ -38,6 +38,7 @@ const appRoutes = [
     element: <PushLocaleToRoute />,
     children: [
       ...publicRoutes,
+      ...privateRoutes
       // If you had any private or other routes, they’d go here
     ],
   },

@@ -1,9 +1,9 @@
 import passport from "passport";
 import { NextFunction, Request, Response } from "express";
-import { User } from "../../modules/Users/User.types";
 import localStrategy from "./localStrategy";
-import jwtStrategy from "../auth/jwtStrategy";
+import jwtStrategy from "./jwtStrategy";
 import AuthError from "../error/autherror";
+import { User } from "../../modules/Users/User.types";
 
 passport.use("local", localStrategy);
 passport.use("jwt", jwtStrategy);
@@ -18,12 +18,15 @@ const passportHandler = (strategy: string) => {
       strategy,
       { session: false },
       function (err: any, user?: User | false) {
+        console.log( strategy, err, user);
         if (err) {
           return next(err);
         }
         if (!user) {
+          console.log("No user found");
           return next(new AuthError());
         } else {
+          console.log("User found", user);
           req.user = user;
           return next();
         }

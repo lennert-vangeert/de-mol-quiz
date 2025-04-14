@@ -8,4 +8,5 @@ export type User = Document &
         _id?: string;
         email: string;
         password: string;
+        role: "ADMIN" | "REGULAR";
     };

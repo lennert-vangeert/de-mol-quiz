@@ -7,21 +7,21 @@ import type * as React from "react";
 
 // Color information
 const colors = {
-  text: "#021529",
-  white: "#FFFFFF",
-  black: "#000000",
-  dark: "#293644",
-  medium: "#6F7881",
-  light: "#B9C2CC",
-  mainBackground: "#FFFFFF", // Semantic white remains for components: change this for dark mode for example
+  text: "#2E2E2E",
+  white: "#F5F5F5",
+  black: "#1C1C1C",
+  dark: "#4A4A4A",
+  medium: "#7D7D7D",
+  light: "#BFBFBF",
+  mainBackground: "#E0E0E0", // Semantic white remains for components: change this for dark mode for example
   backgroundTransparent: "transparent",
-  warning: "#FFD676",
+  warning: "#FFC107",
   default: {
-    primary: "#0A78F2",
-    hover: "#1562B7",
-    focus: "#489DFC",
-    active: "#048C8C",
-    disabled: "#E0E7F0",
+    primary: "#757575",
+    hover: "#616161",
+    focus: "#9E9E9E",
+    active: "#424242",
+    disabled: "#E0E0E0",
   },
 };
 

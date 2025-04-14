@@ -17,7 +17,7 @@ if (process.env.MONGO_CONNECTION) {
         console.log(`Server is running on http://localhost:${port}`);
         startTime = new Date();
       });
-      addAdminUser();
+      // addAdminUser();
       server.on("SIGINT", () => stopServer(server));
       server.on("SIGTERM", () => stopServer(server));
     })
@@ -26,21 +26,28 @@ if (process.env.MONGO_CONNECTION) {
   throw new Error("MongoDB connection string not found");
 }
 
-const addAdminUser = async () => {
-  if (
-    (await UserModel.findOne({ email: "admin@test.com" })) ||
-    process.env.ENVIRONMENT?.toString() == "development"
-  ) {
-    return;
-  }
-  const user = new UserModel({
-    email: "admin@test.com",
-    password: "secret123",
-    firstName: "admin",
-    lastName: "123",
-  });
-  user.save();
-};
+// const addAdminUser = async () => {
+//   if (
+//     (await UserModel.findOne({ email: "admin@test.com" })) ||
+//     ((await UserModel.findOne({ email: "regular@test.com" })) ||
+//       process.env.ENVIRONMENT?.toString() == "production")
+//   ) {
+//     return;
+//   }
+//   const user1 = new UserModel({
+//     email: "admin@test.com",
+//     password: "secret123",
+//     role: "ADMIN",
+//   });
+//   user1.save();
+//   const user2 = new UserModel({
+//     email: "regular@test.com",
+//     password: "secret123",
+//     role: "REGULAR",
+//   });
+//   user2.save();
+//   console.log("Users seeded");
+// };
 
 const stopServer = (server: Server) => {
   mongoose.connection.close();

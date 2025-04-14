@@ -1,20 +1,17 @@
 import { RouteObject } from "react-router-dom";
-import Homepage from "./homepage";
-import AboutUs from "./aboutUs";
-import PageWrapper from "../sections/pageWrapper";
+import LoginPage from "./login";
 
 export const publicRoutes: RouteObject[] = [
   {
     path: "",
-    element: <PageWrapper />,
     children: [
       {
-        index: true,
-        element: <Homepage />,
+        path: "login",
+        element: <LoginPage />,
       },
       {
-        path: "aboutus",
-        element: <AboutUs />,
+        path: "register",
+        element: <div />, // placeholder for now
       },
     ],
   },

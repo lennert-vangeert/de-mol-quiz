@@ -10,14 +10,14 @@ import { errorHandler } from "../middleware/error/errorHandlerMiddleware";
 const registerRoutes = (app: Express) => {
   app.use("/", userPublicRoutes);
   app.use("/", healthRoutes);
-
+  
   const authRoutes = Router();
-  authRoutes.use("/", userPrivateRoutes);
   authRoutes.use("/", quizRoutes);
+  authRoutes.use("/", userPrivateRoutes);
   authRoutes.use("/", answerRoutes);
-
+  
   app.use(authJwt, authRoutes);
-
+  
   //AFTER ALL ROUTES
   app.use(errorHandler);
 };
