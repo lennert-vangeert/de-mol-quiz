@@ -1,5 +1,5 @@
 // PrivateRoute.tsx
-import { refreshToken } from "@global/api/auth";
+import { refreshToken, TOKEN } from "@global/api/auth";
 import React from "react";
 import { Navigate } from "react-router-dom";
 
@@ -10,8 +10,7 @@ type PrivateRouteProps = {
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   // Get the current user role from Zustand.
-  const token = window.localStorage.getItem("token");
-  if (!token) {
+  if (!TOKEN) {
     return <Navigate to="/login" />;
   }
   refreshToken();

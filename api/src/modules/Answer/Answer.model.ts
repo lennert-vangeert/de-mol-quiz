@@ -4,7 +4,6 @@ import { Answer } from "./Answer.types";
 
 const answerSchema = new mongoose.Schema(
   {
-    _id: mongoose.Schema.Types.ObjectId,
     quizId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Quiz",

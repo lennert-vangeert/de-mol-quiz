@@ -4,7 +4,6 @@ import { Quiz } from "./Quiz.types";
 
 const quizSchema = new mongoose.Schema<Quiz>(
   {
-    _id: mongoose.Schema.Types.ObjectId,
     week: { type: Number, required: true },
     questions: [
       {

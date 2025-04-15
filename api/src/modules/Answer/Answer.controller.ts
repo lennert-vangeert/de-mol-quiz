@@ -1,10 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { AuthRequest } from "../../middleware/auth/authMiddleware";
 import notFoundError from "../../middleware/error/notFoundError";
-import Quizmodel from "../Quiz/Quiz.model";
+import Quiz from "../Quiz/Quiz.model";
 import answerModel from "./Answer.model";
-
-
 const getAnswerDetail = async (
   req: Request,
   res: Response,
@@ -37,7 +35,7 @@ const createAnswer = async (
   try {
     const { user } = req as AuthRequest;
 
-    const quiz = await Quizmodel.findOne({
+    const quiz = await Quiz.findOne({
       _id: req.body.quizId,
     });
 
@@ -47,6 +45,7 @@ const createAnswer = async (
 
     const answer = new answerModel({
       ...req.body,
+      userId: user._id,
     });
     const result = await answer.save();
 
@@ -56,8 +55,32 @@ const createAnswer = async (
   }
 };
 
-
-export {
-  createAnswer,
-  getAnswerDetail,
+const getCurrentUserAndWeekAnswer = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { user } = req as AuthRequest;
+    const currentWeekQuiz = await Quiz.findOne({
+      week: process.env.CURRENTWEEK ?? 0,
+    });
+    const answer = await answerModel.findOne({
+      userId: user._id,
+      quizId: currentWeekQuiz?._id,
+    });
+    if (answer) {
+      res.json({
+        hasUserSubmitted: true,
+      });
+    } else {
+      res.json({
+        hasUserSubmitted: false,
+      });
+    }
+  } catch (e) {
+    next(e);
+  }
 };
+
+export { createAnswer, getAnswerDetail, getCurrentUserAndWeekAnswer };

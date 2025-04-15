@@ -3,14 +3,33 @@ import Quiz from "./Quiz.model";
 import { AuthRequest } from "../../middleware/auth/authMiddleware";
 import notFoundError from "../../middleware/error/notFoundError";
 
+const getCurrentQuiz = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const quiz = await Quiz.findOne({
+      week: process.env.CURRENTWEEK ?? 0,
+    });
+    if (!quiz) {
+      res.status(404).json({ message: "No quiz found" });
+      return;
+    }
+    res.json(quiz);
+  } catch (e) {
+    next(e);
+    res.status(500).json({ message: "internal server error" });
+  }
+};
 
 const createQuiz = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { user } = req as AuthRequest;
-    const quiz = new Quiz({ ...req.body, userId: user._id });
+    const quiz = new Quiz({ ...req.body });
     const result = await quiz.save();
     res.status(200).json(result);
-  } catch {
+  } catch (e) {
+    next(e);
     res.status(500).json({ message: "internal server error" });
   }
 };
@@ -32,5 +51,4 @@ const getQuizById = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-
-export { createQuiz, getQuizById };
+export { createQuiz, getQuizById, getCurrentQuiz };

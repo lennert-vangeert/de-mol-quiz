@@ -3,9 +3,17 @@ import * as React from "react";
 import { useForm } from "@mantine/form";
 import { API } from "@global/api/auth";
 import { useNavigate } from "react-router-dom";
+import { useTranslate } from "@global/localization";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { tL } = useTranslate();
+  React.useEffect(() => {
+    if (window.localStorage.getItem("token")) {
+      navigate(tL("/"));
+    }
+  }, []);
+
   const form = useForm({
     initialValues: {
       email: "admin@test.com",
@@ -32,8 +40,8 @@ const LoginPage = () => {
           }
         })
         .catch(() => {
-            form.setFieldError("email", "Ongeldige email of wachtwoord");
-            form.setFieldError("password", "Ongeldige email of wachtwoord");
+          form.setFieldError("email", "Ongeldige email of wachtwoord");
+          form.setFieldError("password", "Ongeldige email of wachtwoord");
         });
     },
     []

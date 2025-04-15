@@ -20,12 +20,16 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    role:{
+    role: {
       type: String,
       enum: ["ADMIN", "REGULAR"],
       default: "REGULAR",
       required: true,
-    }
+    },
+    score: {
+      type: Number,
+      required: true,
+    },
   },
   {
     timestamps: true,
@@ -56,13 +60,17 @@ userSchema.methods = {
   comparePassword: function (password: string) {
     const user = this;
     return new Promise((resolve, reject) => {
-      bcrypt.compare(password, user.password, (err: Error | null, isMatch: boolean) => {
-        if (isMatch) {
-          resolve(true);
-        } else {
-          reject(err);
+      bcrypt.compare(
+        password,
+        user.password,
+        (err: Error | null, isMatch: boolean) => {
+          if (isMatch) {
+            resolve(true);
+          } else {
+            reject(err);
+          }
         }
-      });
+      );
     });
   },
   generateToken: function () {

@@ -39,8 +39,7 @@ const getCurrentUser = (req: Request, res: Response, next: NextFunction) => {
 };
 const refreshToken = (req: Request, res: Response, next: NextFunction) => {
   const { user } = req as AuthRequest;
-  const userRole = user.role;
   const newToken = user.generateToken();
-  res.json({ token: newToken, role: [userRole] });
+  res.json({ token: newToken, role: [user.role], userId: user._id });
 };
 export { login, getCurrentUser, register, refreshToken };
