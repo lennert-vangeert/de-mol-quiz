@@ -10,12 +10,12 @@ type PrivateRouteProps = {
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   // Get the current user role from Zustand.
-  if (!TOKEN) {
-    return <Navigate to="/login" />;
+  if (TOKEN) {
+    refreshToken();
+    return children;
   }
-  refreshToken();
+  <Navigate to="/login" />;
   // Otherwise, render the protected component.
-  return children;
 };
 
 export default PrivateRoute;

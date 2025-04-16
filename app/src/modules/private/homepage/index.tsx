@@ -2,6 +2,7 @@ import {
   Button,
   Center,
   Group,
+  Loader,
   Paper,
   Radio,
   Text,
@@ -16,7 +17,7 @@ import {
   sendAnswer,
   checkForAnswer,
 } from "@global/api/requests";
-import { TOKEN, USERID } from "@global/api/auth";
+import { USERID } from "@global/api/auth";
 
 export type Quiz = {
   _id: string;
@@ -35,25 +36,25 @@ export type Quiz = {
     correctAnswer?: string;
   }[];
 };
-console.log(TOKEN);
+
 const Homepage = () => {
   const [quiz, setQuiz] = React.useState<Quiz | null>(null);
   const [isSubmitted, setIsSubmitted] = React.useState<boolean>(false);
-  // We'll store the answer key in a ref so it doesn't appear in React state for rendering.
+  const [loading, setLoading] = React.useState<boolean>(true);
+  // Store correct answers in a ref to keep them out of the rendered state.
   const answerKeyRef = React.useRef<{ [questionId: string]: string }>({});
 
   // Initialize the Mantine form with dynamic keys.
-  // We'll update these initial values once the quiz is loaded.
   const form = useForm<{ [key: string]: string }>({
     initialValues: {},
   });
 
   React.useEffect(() => {
-    // Renamed the inner function to avoid collision with the imported checkForAnswer
+    // Async function to check submission status.
     const checkSubmissionStatus = async () => {
       try {
         const response = await checkForAnswer();
-        console.log(response);
+        console.log("Submission response:", response);
         if (response.hasUserSubmitted === true) {
           setIsSubmitted(true);
         }
@@ -61,39 +62,36 @@ const Homepage = () => {
         console.error("Error checking for answer submission:", error);
       }
     };
-    checkSubmissionStatus();
 
+    // Async function to fetch quiz data.
     const fetchQuiz = async () => {
       try {
         const response = await getCurrentQuiz();
         const rawQuiz: Quiz = response?.data;
         if (rawQuiz) {
-          // Process raw quiz data:
-          // - Save the correct answers in answerKeyRef.
-          // - Remove sensitive information from the quiz before setting state.
           const safeQuiz: Quiz = {
             _id: rawQuiz._id,
             week: rawQuiz.week,
             questions: rawQuiz.questions.map((q) => {
               if (q.questionType === "multiple-choice" && q.options) {
-                // Find the correct answer in options.
+                // Identify the correct option and store it (without exposing it later).
                 const correctOption = q.options.find(
                   (o) => o.isCorrect === "true"
                 );
                 if (correctOption) {
-                  answerKeyRef.current[q.questionId] = correctOption.optionText;
+                  answerKeyRef.current[q.questionId] =
+                    correctOption.optionText;
                 }
-                // Remove the isCorrect property from options for display.
+                // Remove the isCorrect property for display.
                 const safeOptions = q.options.map((o) => ({
                   optionText: o.optionText,
                 }));
                 return { ...q, options: safeOptions };
               } else if (q.questionType === "open") {
-                // For open questions, assume there's a hidden correctAnswer property.
                 if (q.correctAnswer) {
                   answerKeyRef.current[q.questionId] = q.correctAnswer;
                 }
-                // Remove the correctAnswer property before sending to UI.
+                // Strip out correctAnswer before setting state.
                 const { correctAnswer, ...rest } = q;
                 return rest;
               }
@@ -101,10 +99,9 @@ const Homepage = () => {
             }),
           };
 
-          // Set the quiz state with the safe version that doesn't expose answers.
           setQuiz(safeQuiz);
 
-          // Initialize form values for each question with an empty string.
+          // Initialize form values for each question as empty strings.
           const initValues: { [key: string]: string } = {};
           safeQuiz.questions.forEach((question) => {
             initValues[question.questionId] = "";
@@ -116,17 +113,21 @@ const Homepage = () => {
       }
     };
 
-    fetchQuiz();
-    // Run this effect only once on mount.
+    // Wait for both the quiz and the submission status to finish loading.
+    const loadData = async () => {
+      await Promise.all([fetchQuiz(), checkSubmissionStatus()]);
+      setLoading(false);
+    };
+
+    loadData();
+    // Only run on mount.
   }, []);
 
   const handleSubmit = form.onSubmit((values) => {
     let totalScore = 0;
-    // Map each question to an answer object.
     const answers =
       quiz?.questions.map((q) => {
         const userAnswer = values[q.questionId] || "";
-        // Compare (case-insensitive, trimmed) with the correct answer stored in answerKeyRef.
         const correctAnswer = answerKeyRef.current[q.questionId] || "";
         const isCorrect =
           userAnswer.trim().toLowerCase() ===
@@ -141,18 +142,25 @@ const Homepage = () => {
         };
       }) || [];
 
-    // Build the answer payload according to your Answer type.
-    // Replace the placeholders with actual quiz and user id values if available.
+    // Build payload.
     const answerPayload = {
-      quizId: quiz?._id, // e.g., quiz._id if your API returns it
-      userId: USERID, // substitute with the current logged in user id
+      quizId: quiz?._id,
+      userId: USERID,
       answers,
       totalScore,
     };
     setIsSubmitted(true);
-    // Send the computed answers to the API.
     sendAnswer(answerPayload);
   });
+
+  // Render a loader until both data and submission status are loaded.
+  if (loading) {
+    return (
+      <Center p="2rem">
+        <Loader />
+      </Center>
+    );
+  }
 
   return (
     <>
@@ -161,66 +169,55 @@ const Homepage = () => {
         description="Weekly quiz for De Mol"
         SEODisabled
       />
-      {!isSubmitted && (
-        <Center style={{ padding: "2rem" }}>
-          <Paper
-            shadow="xl"
-            withBorder
-            p="md"
-            style={{ width: "100%", maxWidth: 600 }}
-          >
-            <Title order={2} mb="md">
-              De Mol Quiz - Week {quiz?.week}
-            </Title>
+      {!isSubmitted ? (
+        <Center p="2rem">
+          <Paper shadow="xl" withBorder p="md" w="100%" maw="37rem">
             {quiz ? (
-              <form onSubmit={handleSubmit}>
-                {quiz.questions.map((q) => (
-                  <div key={q.questionId} style={{ marginBottom: "1.5rem" }}>
-                    <Title order={4}>{q.questionText}</Title>
-                    {q.questionType === "multiple-choice" && q.options ? (
-                      // Render a radio group for multiple-choice questions.
-                      <Radio.Group
-                        name={q.questionId}
-                        value={form.values[q.questionId]}
-                        onChange={(value) =>
-                          form.setFieldValue(q.questionId, value)
-                        }
-                      >
-                        {q.options.map((option, idx) => (
-                          <Radio
-                            key={idx}
-                            value={option.optionText}
-                            label={option.optionText}
-                          />
-                        ))}
-                      </Radio.Group>
-                    ) : (
-                      // Render a text input for open questions.
-                      <TextInput
-                        placeholder="Your answer here"
-                        {...form.getInputProps(q.questionId)}
-                      />
-                    )}
-                  </div>
-                ))}
-                <Group>
-                  <Button type="submit">Submit Answers</Button>
-                </Group>
-              </form>
+              <>
+                <Title order={2} mb="md">
+                  De Mol Quiz - Week {quiz.week}
+                </Title>
+                <form onSubmit={handleSubmit}>
+                  {quiz.questions.map((q) => (
+                    <div key={q.questionId} style={{ marginBottom: "1.5rem" }}>
+                      <Title order={4}>{q.questionText}</Title>
+                      {q.questionType === "multiple-choice" && q.options ? (
+                        <Radio.Group
+                          name={q.questionId}
+                          value={form.values[q.questionId]}
+                          onChange={(value) =>
+                            form.setFieldValue(q.questionId, value)
+                          }
+                        >
+                          {q.options.map((option, idx) => (
+                            <Radio
+                              key={idx}
+                              value={option.optionText}
+                              label={option.optionText}
+                            />
+                          ))}
+                        </Radio.Group>
+                      ) : (
+                        <TextInput
+                          placeholder="Your answer here"
+                          {...form.getInputProps(q.questionId)}
+                        />
+                      )}
+                    </div>
+                  ))}
+                  <Group>
+                    <Button type="submit">Submit Answers</Button>
+                  </Group>
+                </form>
+              </>
             ) : (
-              <div>Loading quiz...</div>
+              <Text>No quiz available.</Text>
             )}
           </Paper>
         </Center>
-      )}
-      {isSubmitted && (
+      ) : (
         <Center style={{ padding: "2rem" }}>
-          <Paper
-            shadow="xl"
-            withBorder
-            p="md"
-            style={{ width: "100%", maxWidth: 600 }}
-          >
+          <Paper shadow="xl" withBorder p="md" style={{ width: "100%", maxWidth: 600 }}>
             <Title order={2} mb="md">
               De Mol Quiz - Week {quiz?.week}
             </Title>

@@ -1,4 +1,4 @@
-import { Button, Center, Group, Paper, TextInput, Title } from "@mantine/core";
+import { Button, Center, Group, Paper, Text, TextInput, Title } from "@mantine/core";
 import * as React from "react";
 import { useForm } from "@mantine/form";
 import { API } from "@global/api/auth";
@@ -8,6 +8,9 @@ import { useTranslate } from "@global/localization";
 const LoginPage = () => {
   const navigate = useNavigate();
   const { tL } = useTranslate();
+
+  const [generalError, setGeneralError] = React.useState("");
+
   React.useEffect(() => {
     if (window.localStorage.getItem("token")) {
       navigate(tL("/"));
@@ -29,8 +32,7 @@ const LoginPage = () => {
 
   const handleLogin = React.useCallback(
     (formData: { email: string; password: string }) => {
-      console.log(formData.email);
-      console.log(formData);
+      setGeneralError(""); // Clear any previous errors
       API.post("/login", formData)
         .then((response) => {
           if (response.status === 200) {
@@ -40,18 +42,25 @@ const LoginPage = () => {
           }
         })
         .catch(() => {
-          form.setFieldError("email", "Ongeldige email of wachtwoord");
-          form.setFieldError("password", "Ongeldige email of wachtwoord");
+          setGeneralError("Ongeldige email of wachtwoord");
         });
     },
     []
   );
+
   return (
     <Center h="100vh">
       <Paper shadow="xl" withBorder miw="18rem" px="1.5rem" py="1rem">
-        <Title mb="1.5rem" order={5}>
+        <Title mb="0.5rem" order={5}>
           Log in
         </Title>
+
+        {generalError && (
+          <Text c="red" size="sm" mb="1.5rem">
+            {generalError}
+          </Text>
+        )}
+
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -65,7 +74,7 @@ const LoginPage = () => {
             {...form.getInputProps("email")}
           />
           <TextInput
-            label="password"
+            label="Password"
             type="password"
             key={form.key("password")}
             {...form.getInputProps("password")}

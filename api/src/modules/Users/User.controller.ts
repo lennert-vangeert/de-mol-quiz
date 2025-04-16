@@ -3,7 +3,6 @@ import User from "./User.model";
 import { AuthRequest } from "../../middleware/auth/authMiddleware";
 
 const login = async (req: Request, res: Response, next: NextFunction) => {
-  console.log("login", req.body);
   const { user } = req as AuthRequest;
   const dataBaseUser = await User.findOne({ email: req.body.email });
 
