@@ -1,9 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { AuthRequest } from "../../middleware/auth/authMiddleware";
-import notFoundError from "../../middleware/error/notFoundError";
+import notFoundError from "../../middleware/error/NotFoundError";
 import Quiz from "../Quiz/Quiz.model";
 import answerModel from "./Answer.model";
-import { CURRENTWEEK } from "../../server";
 const getAnswerDetail = async (
   req: Request,
   res: Response,
@@ -64,7 +63,7 @@ const getCurrentUserAndWeekAnswer = async (
   try {
     const { user } = req as AuthRequest;
     const currentWeekQuiz = await Quiz.findOne({
-      week: CURRENTWEEK ?? 0,
+      week: process.env.CURRENTWEEK ?? 0,
     });
     const answer = await answerModel.findOne({
       userId: user._id,

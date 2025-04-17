@@ -4,10 +4,6 @@ import app from "./app";
 import { Server } from "http";
 import UserModel from "./modules/Users/User.model";
 const port: number = parseInt(process.env.PORT ?? "9300");
-export let startTime: Date;
-
-export const CURRENTWEEK = process.env.CURRENTWEEK;
-
 if (process.env.MONGO_CONNECTION) {
   mongoose
     .connect(process.env.MONGO_CONNECTION)
@@ -18,14 +14,6 @@ if (process.env.MONGO_CONNECTION) {
       const server = app.listen(port, () => {
         console.log(`Server is running on http://localhost:${port}`);
       });
-
-      // const user = new UserModel({
-      //   email: "lennert.vangeert@gmail.com",
-      //   password: "[REDACTED]",
-      //   firstName: "Lennert",
-      //   lastName: "Van Geert",
-      // });
-      // user.save();
 
       server.on("SIGINT", () => stopServer(server));
       server.on("SIGTERM", () => stopServer(server));
@@ -42,4 +30,3 @@ const stopServer = (server: Server) => {
     process.exit();
   });
 };
-

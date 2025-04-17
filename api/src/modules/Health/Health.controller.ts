@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from "express";
-import { startTime } from "../../server";
 
 export const healthCheck = async (
   _req: Request,
@@ -7,7 +6,7 @@ export const healthCheck = async (
   next: NextFunction
 ) => {
   try {
-    res.json({ message: `API is running since: ${startTime}` });
+    res.json({ message: `API is running.` });
   } catch (err) {
     next(err);
   }
