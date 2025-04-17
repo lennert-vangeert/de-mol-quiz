@@ -1,6 +1,8 @@
 import {
+  Box,
   Button,
   Center,
+  CheckIcon,
   Group,
   Loader,
   Paper,
@@ -17,7 +19,9 @@ import {
   sendAnswer,
   checkForAnswer,
 } from "@global/api/requests";
-import { USERID } from "@global/api/auth";
+import { TOKEN, USERID } from "@global/api/auth";
+import classes from "./homepage.module.css";
+import { useNeonFlicker } from "@global/hooks/useNeonFlicker";
 
 export type Quiz = {
   _id: string;
@@ -43,6 +47,7 @@ const Homepage = () => {
   const [loading, setLoading] = React.useState<boolean>(true);
   // Store correct answers in a ref to keep them out of the rendered state.
   const answerKeyRef = React.useRef<{ [questionId: string]: string }>({});
+  useNeonFlicker(classes.neontitle);
 
   // Initialize the Mantine form with dynamic keys.
   const form = useForm<{ [key: string]: string }>({
@@ -79,8 +84,7 @@ const Homepage = () => {
                   (o) => o.isCorrect === "true"
                 );
                 if (correctOption) {
-                  answerKeyRef.current[q.questionId] =
-                    correctOption.optionText;
+                  answerKeyRef.current[q.questionId] = correctOption.optionText;
                 }
                 // Remove the isCorrect property for display.
                 const safeOptions = q.options.map((o) => ({
@@ -161,7 +165,7 @@ const Homepage = () => {
       </Center>
     );
   }
-
+  console.log(TOKEN);
   return (
     <>
       <Head
@@ -170,17 +174,19 @@ const Homepage = () => {
         SEODisabled
       />
       {!isSubmitted ? (
-        <Center p="2rem">
-          <Paper shadow="xl" withBorder p="md" w="100%" maw="37rem">
+        <Center mih="80vh" p="2rem" className={classes.background}>
+          <Box p="md" w="100%" maw="45rem">
             {quiz ? (
               <>
-                <Title order={2} mb="md">
+                <Title className={classes.neontitle} order={2} mb="md">
                   De Mol Quiz - Week {quiz.week}
                 </Title>
                 <form onSubmit={handleSubmit}>
                   {quiz.questions.map((q) => (
-                    <div key={q.questionId} style={{ marginBottom: "1.5rem" }}>
-                      <Title order={4}>{q.questionText}</Title>
+                    <Box key={q.questionId} style={{ marginBottom: "1.5rem" }}>
+                      <Title mt="2rem" mb="1rem" order={4}>
+                        {q.questionText}
+                      </Title>
                       {q.questionType === "multiple-choice" && q.options ? (
                         <Radio.Group
                           name={q.questionId}
@@ -191,6 +197,8 @@ const Homepage = () => {
                         >
                           {q.options.map((option, idx) => (
                             <Radio
+                              icon={CheckIcon}
+                              mt="1rem"
                               key={idx}
                               value={option.optionText}
                               label={option.optionText}
@@ -198,26 +206,28 @@ const Homepage = () => {
                           ))}
                         </Radio.Group>
                       ) : (
-                        <TextInput
-                          placeholder="Your answer here"
-                          {...form.getInputProps(q.questionId)}
-                        />
+                        <TextInput {...form.getInputProps(q.questionId)} />
                       )}
-                    </div>
+                    </Box>
                   ))}
                   <Group>
-                    <Button type="submit">Submit Answers</Button>
+                    <Button type="submit">Doorsturen</Button>
                   </Group>
                 </form>
               </>
             ) : (
               <Text>No quiz available.</Text>
             )}
-          </Paper>
+          </Box>
         </Center>
       ) : (
         <Center style={{ padding: "2rem" }}>
-          <Paper shadow="xl" withBorder p="md" style={{ width: "100%", maxWidth: 600 }}>
+          <Paper
+            shadow="xl"
+            withBorder
+            p="md"
+            style={{ width: "100%", maxWidth: 600 }}
+          >
             <Title order={2} mb="md">
               De Mol Quiz - Week {quiz?.week}
             </Title>

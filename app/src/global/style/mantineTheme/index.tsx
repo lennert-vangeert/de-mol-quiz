@@ -5,22 +5,27 @@ import type {
 import { MantineProvider } from "@mantine/core";
 import type * as React from "react";
 
+// #083A59
+// #031926
+// #07668C
+// #0889A6
+// #0CDBF2
 // Color information
 const colors = {
-  text: "#2E2E2E",
+  text: "#F5F5F5",
   white: "#F5F5F5",
   black: "#1C1C1C",
-  dark: "#4A4A4A",
-  medium: "#7D7D7D",
-  light: "#BFBFBF",
-  mainBackground: "#E0E0E0", // Semantic white remains for components: change this for dark mode for example
+  dark: "#083A59",
+  medium: "#07668C",
+  light: "#0CDBF2",
+  mainBackground: "#031926", // Semantic white remains for components: change this for dark mode for example
   backgroundTransparent: "transparent",
   warning: "#FFC107",
   default: {
-    primary: "#757575",
-    hover: "#616161",
-    focus: "#9E9E9E",
-    active: "#424242",
+    primary: "#0CDBF2",
+    hover: "#07668C",
+    focus: "#0CDBF2",
+    active: "#0CDBF2",
     disabled: "#E0E0E0",
   },
 };
@@ -94,7 +99,7 @@ const theme: MantineThemeOverride = {
       "#567930",
     ],
   },
-  fontFamily: "Roboto, Helvetica",
+  fontFamily: "Roboto Mono, monospace",
   fontSizes: {
     xs: "0.6875rem",
     sm: "0.875rem",
@@ -110,7 +115,7 @@ const theme: MantineThemeOverride = {
     xl: "1.65",
   },
   headings: {
-    fontFamily: "Roboto, Helvetica",
+    fontFamily: "Roboto Mono, monospace",
     textWrap: "wrap",
     sizes: {
       h1: {

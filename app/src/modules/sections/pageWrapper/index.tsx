@@ -1,4 +1,4 @@
-import { AppShell, AppShellMain } from "@mantine/core";
+import { AppShell, Box } from "@mantine/core";
 import Header from "../header";
 import Footer from "../footer";
 import { ReactNode, useMemo } from "react";
@@ -16,21 +16,21 @@ const PageWrapper = ({ children }: PageWrapperProps) => {
 
   const margin = useMemo(() => {
     if (isMobile) {
-      return "5rem";
+      return "2rem";
     }
     if (isTablet) {
       return "3.5rem";
     }
-    return "2rem";
+    return "5rem";
   }, [isMobile, isTablet]);
 
   return (
     <AppShell>
       <Header />
-      <AppShellMain className={style.main} ml={margin} mr={margin}>
+      <Box className={style.main} ml={margin} mr={margin}>
         {/* Render direct children if provided, otherwise fallback to nested routes */}
         {children ?? <Outlet />}
-      </AppShellMain>
+      </Box>
       <Footer />
     </AppShell>
   );

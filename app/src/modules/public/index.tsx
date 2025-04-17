@@ -1,5 +1,6 @@
 import { RouteObject } from "react-router-dom";
 import LoginPage from "./login";
+import RegisterPage from "./register";
 
 export const publicRoutes: RouteObject[] = [
   {
@@ -11,7 +12,7 @@ export const publicRoutes: RouteObject[] = [
       },
       {
         path: "register",
-        element: <div />, // placeholder for now
+        element: <RegisterPage />,
       },
     ],
   },

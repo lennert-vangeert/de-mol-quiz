@@ -1,7 +1,8 @@
-import Icon from "./_assets/vite.svg?react";
+import { Image } from "@mantine/core";
+import image from "./_assets/de-mol-logo.png";
 
 const AppIcon = () => {
-  return <Icon height="3rem" width="3rem" />;
+  return <Image fit="contain" src={image} h="5rem" w="5rem" />;
 };
 
 export default AppIcon;

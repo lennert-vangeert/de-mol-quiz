@@ -1,4 +1,4 @@
-import { Anchor, AppShellHeader, Box, Group } from "@mantine/core";
+import { Anchor, AppShellHeader, Box, Group, Text } from "@mantine/core";
 import AppIcon from "@common/appIcon/appIcon";
 import LanguageSelect from "@common/languageSelect";
 import { Link, useNavigate } from "react-router-dom";
@@ -21,8 +21,7 @@ const Header = () => {
             <AppIcon />
           </Link>
         </Box>
-        <Anchor onClick={() => handleLogout()}>Logout</Anchor>
-        <LanguageSelect />
+        <Anchor onClick={() => handleLogout()}><Text size="1.25rem">Log uit</Text></Anchor>
       </Group>
     </AppShellHeader>
   );

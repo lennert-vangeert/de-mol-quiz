@@ -23,6 +23,7 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
         email: req.body.email,
         password: req.body.password,
         role: "REGULAR",
+        score: 0,
       });
       await newUser.save();
       res.status(200).json({ token: newUser.generateToken() });
