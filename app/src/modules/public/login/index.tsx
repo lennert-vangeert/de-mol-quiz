@@ -99,7 +99,7 @@ const LoginPage = () => {
           />
 
           <Group justify="flex-end" mt="md">
-            <Anchor component={Link} to="/register" size="sm">
+            <Anchor component={Link} to={tL("/register")} size="sm">
               Nog geen account? Registreer hier
             </Anchor>
             <Button type="submit" loading={loading}>

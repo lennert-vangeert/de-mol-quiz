@@ -64,7 +64,7 @@ i18next
   .use(initReactI18next)
   .init({
     detection: {
-      order: ["path", "navigator"],
+      order: ["path"],
     },
     supportedLngs: locales.map((l) => l.id),
     resources: locales.reduce((acc, locale) => {

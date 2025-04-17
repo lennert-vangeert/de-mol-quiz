@@ -115,7 +115,7 @@ const RegisterPage = () => {
           />
 
           <Group mt="md">
-            <Anchor component={Link} to="/login" size="sm">
+            <Anchor component={Link} to={tL("/login")} size="sm">
               Heb je al een account? Log in
             </Anchor>
             <Button type="submit" loading={loading}>
