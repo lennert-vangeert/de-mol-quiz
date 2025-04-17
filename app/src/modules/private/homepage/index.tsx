@@ -19,7 +19,7 @@ import {
   sendAnswer,
   checkForAnswer,
 } from "@global/api/requests";
-import { TOKEN, USERID } from "@global/api/auth";
+import { USERID } from "@global/api/auth";
 import classes from "./homepage.module.css";
 
 export type Quiz = {

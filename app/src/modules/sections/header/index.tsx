@@ -1,6 +1,5 @@
 import { Anchor, AppShellHeader, Box, Group, Text } from "@mantine/core";
 import AppIcon from "@common/appIcon/appIcon";
-import LanguageSelect from "@common/languageSelect";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslate } from "@global/localization";
 import { useCallback } from "react";
