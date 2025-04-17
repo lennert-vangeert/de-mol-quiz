@@ -1,4 +1,5 @@
 import {
+  Anchor,
   Box,
   Button,
   Center,
@@ -44,6 +45,7 @@ const Homepage = () => {
   const [quiz, setQuiz] = React.useState<Quiz | null>(null);
   const [isSubmitted, setIsSubmitted] = React.useState<boolean>(false);
   const [loading, setLoading] = React.useState<boolean>(true);
+  const [error, setError] = React.useState<string | null>(null);
   // Store correct answers in a ref to keep them out of the rendered state.
   const answerKeyRef = React.useRef<{ [questionId: string]: string }>({});
 
@@ -62,14 +64,16 @@ const Homepage = () => {
           setIsSubmitted(true);
         }
       } catch (error) {
-        console.error("Error checking for answer submission:", error);
+        setError("Er ging iets fout, probeer het opnieuw.");
       }
     };
 
     // Async function to fetch quiz data.
     const fetchQuiz = async () => {
       try {
-        const response = await getCurrentQuiz();
+        const response = await getCurrentQuiz().catch(() => {
+          setError("Er ging iets fout, probeer het opnieuw.");
+        });
         const rawQuiz: Quiz = response?.data;
         if (rawQuiz) {
           const safeQuiz: Quiz = {
@@ -111,7 +115,7 @@ const Homepage = () => {
           form.setValues(initValues);
         }
       } catch (error) {
-        console.error("Error fetching quiz:", error);
+        setError("Er ging iets fout, probeer het opnieuw.");
       }
     };
 
@@ -125,8 +129,8 @@ const Homepage = () => {
     // Only run on mount.
   }, []);
 
-
   const handleSubmit = form.onSubmit((values) => {
+    setLoading(true);
     let totalScore = 0;
     const answers =
       quiz?.questions.map((q) => {
@@ -152,15 +156,35 @@ const Homepage = () => {
       answers,
       totalScore,
     };
-    setIsSubmitted(true);
-    sendAnswer(answerPayload);
+    sendAnswer(answerPayload)
+      .then(() => {
+        console.log("Answer sent successfully:", answerPayload);
+        setLoading(false);
+        setIsSubmitted(true);
+      })
+      .catch(() => {
+        setLoading(false);
+        setError("Er ging iets fout, probeer het opnieuw.");
+      });
   });
 
-  // Render a loader until both data and submission status are loaded.
-  if (loading) {
+  if (loading || error) {
     return (
-      <Center p="2rem">
-        <Loader />
+      <Center mih="80vh" p="2rem" className={classes.background}>
+        {loading && <Loader />}
+        {error && (
+          <Paper
+            shadow="xl"
+            withBorder
+            p="md"
+            style={{ width: "100%", maxWidth: 600 }}
+          >
+            <Text>{error}</Text>
+            <Anchor component="button" onClick={() => window.location.reload()} >
+              Refresh
+            </Anchor>
+          </Paper>
+        )}
       </Center>
     );
   }

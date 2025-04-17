@@ -2,14 +2,14 @@ import { API, TOKEN } from "./auth";
 
 export const getCurrentQuiz = async () => {
   try {
-    const response = API.get("quiz", {
+    const response = await API.get("quiz", {
       headers: {
         authorization: `Bearer ${TOKEN}`,
       },
     });
     return response;
-  } catch (e) {
-    console.log(e);
+  } catch (error) {
+    throw error;
   }
 };
 
@@ -26,19 +26,21 @@ type answerInput = {
 };
 
 export const sendAnswer = async (answer: answerInput) => {
-  console.log(answer);
+  console.log("Sending answer:", answer);
   try {
-    API.post("answers", answer, {
+    await API.post("answers", answer, {
       headers: {
         authorization: `Bearer ${TOKEN}`,
       },
     });
-  } catch (e) {
-    console.log(e);
+  } catch (error) {
+    throw error;
   }
 };
 
-export const checkForAnswer = async (): Promise<{ hasUserSubmitted: boolean }> => {
+export const checkForAnswer = async (): Promise<{
+  hasUserSubmitted: boolean;
+}> => {
   try {
     const response = await API.get("answers/check", {
       headers: {
@@ -48,6 +50,6 @@ export const checkForAnswer = async (): Promise<{ hasUserSubmitted: boolean }> =
 
     return response.data; // THIS is the object with hasUserSubmitted
   } catch (error) {
-    throw error; // Let the caller deal with the mess
+    throw error;
   }
 };
