@@ -18,6 +18,7 @@ const LoginPage = () => {
   const { tL } = useTranslate();
 
   const [generalError, setGeneralError] = React.useState("");
+  const [loading, setLoading] = React.useState(false); // NEW loading state
 
   React.useEffect(() => {
     if (window.localStorage.getItem("token")) {
@@ -40,7 +41,9 @@ const LoginPage = () => {
 
   const handleLogin = React.useCallback(
     (formData: { email: string; password: string }) => {
-      setGeneralError(""); // Clear any previous errors
+      setGeneralError("");
+      setLoading(true); // Start loading state
+
       API.post("/login", formData)
         .then((response) => {
           if (response.status === 200) {
@@ -51,9 +54,12 @@ const LoginPage = () => {
         })
         .catch(() => {
           setGeneralError("Ongeldige email of wachtwoord");
+        })
+        .finally(() => {
+          setLoading(false); // Stop loading regardless of success/failure
         });
     },
-    []
+    [tL]
   );
 
   return (
@@ -62,7 +68,11 @@ const LoginPage = () => {
         <Title mb="0.5rem" order={5}>
           Log in
         </Title>
-
+        {loading && (
+          <Text size="xs" mt="sm" mb=".5rem" c="dimmed">
+            De server is waarschijnlijk aan het opstarten...
+          </Text>
+        )}
         {generalError && (
           <Text c="red" size="sm" mb="1.5rem">
             {generalError}
@@ -92,7 +102,9 @@ const LoginPage = () => {
             <Anchor component={Link} to="/register" size="sm">
               Nog geen account? Registreer hier
             </Anchor>
-            <Button type="submit">Log in</Button>
+            <Button type="submit" loading={loading}>
+              Log in
+            </Button>
           </Group>
         </form>
       </Paper>

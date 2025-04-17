@@ -19,6 +19,7 @@ const RegisterPage = () => {
   const navigate = useNavigate();
   const { tL } = useTranslate();
   const [generalError, setGeneralError] = React.useState("");
+  const [loading, setLoading] = React.useState(false); // NEW loading state
 
   // If already logged in, bounce back to home
   React.useEffect(() => {
@@ -51,6 +52,7 @@ const RegisterPage = () => {
   const registerUser = React.useCallback(
     async (values: typeof form.values) => {
       setGeneralError("");
+      setLoading(true); // Start loading
       try {
         const response = await API.post("/register", {
           email: values.email,
@@ -64,6 +66,8 @@ const RegisterPage = () => {
       } catch (err) {
         console.error(err);
         setGeneralError("Er is iets misgegaan bij registratie");
+      } finally {
+        setLoading(false); // End loading
       }
     },
     [navigate, tL]
@@ -76,13 +80,18 @@ const RegisterPage = () => {
           Registreren
         </Title>
 
+        {loading && (
+          <Text size="xs" mt="sm" mb=".5rem" c="dimmed">
+            De server is waarschijnlijk aan het opstarten...
+          </Text>
+        )}
+
         {generalError && (
           <Text c="red" size="sm" mb="1rem">
             {generalError}
           </Text>
         )}
 
-        {/* <-- Notice: we hand Mantine the registerUser callback directly */}
         <form onSubmit={form.onSubmit(registerUser)}>
           <TextInput
             label="Email"
@@ -109,7 +118,9 @@ const RegisterPage = () => {
             <Anchor component={Link} to="/login" size="sm">
               Heb je al een account? Log in
             </Anchor>
-            <Button type="submit">Registreren</Button>
+            <Button type="submit" loading={loading}>
+              Registreren
+            </Button>
           </Group>
         </form>
       </Paper>

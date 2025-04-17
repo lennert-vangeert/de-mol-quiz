@@ -13,7 +13,6 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const register = async (req: Request, res: Response, next: NextFunction) => {
-  console.log("test");
   const user = await User.findOne({ email: req.body.email });
   try {
     if (user) {

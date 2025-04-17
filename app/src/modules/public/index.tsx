@@ -1,6 +1,7 @@
 import { RouteObject } from "react-router-dom";
 import LoginPage from "./login";
 import RegisterPage from "./register";
+import { API } from "@global/api/auth";
 
 export const publicRoutes: RouteObject[] = [
   {
@@ -17,3 +18,6 @@ export const publicRoutes: RouteObject[] = [
     ],
   },
 ];
+
+// trigger the api to start up on load
+API.get("/health");
