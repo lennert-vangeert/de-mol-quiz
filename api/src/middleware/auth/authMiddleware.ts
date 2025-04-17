@@ -2,7 +2,7 @@ import passport from "passport";
 import { NextFunction, Request, Response } from "express";
 import localStrategy from "./localStrategy";
 import jwtStrategy from "./jwtStrategy";
-import AuthError from "../error/autherror";
+import AuthError from "../error/AuthorisationError";
 import { User } from "../../modules/Users/User.types";
 
 passport.use("local", localStrategy);

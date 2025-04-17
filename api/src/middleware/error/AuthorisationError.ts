@@ -1,4 +1,4 @@
-import AppError from "./appError";
+import AppError from "./ApplicationError";
 
 export default class AuthError extends AppError {
   constructor() {
