@@ -1,7 +1,6 @@
 // PrivateRoute.tsx
 import { refreshToken, TOKEN } from "@global/api/auth";
 import React from "react";
-import { Navigate } from "react-router-dom";
 
 type PrivateRouteProps = {
   allowedRoles: Array<"ADMIN" | "REGULAR" | null>;
@@ -9,13 +8,11 @@ type PrivateRouteProps = {
 };
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
-  // Get the current user role from Zustand.
   if (TOKEN) {
     refreshToken();
     return children;
   }
-  <Navigate to="/login" />;
-  // Otherwise, render the protected component.
+  window.location.href = "/login";
 };
 
 export default PrivateRoute;
