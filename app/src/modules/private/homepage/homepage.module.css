@@ -1,14 +1,28 @@
 .neontitle {
-  /* your static glow, no animation */
   text-shadow: 0 0 7px #fff, 0 0 10px #fff, 0 0 21px #fff, 0 0 42px #0cdbf2,
     0 0 82px #0cdbf2, 0 0 92px #0cdbf2, 0 0 102px #0cdbf2, 0 0 151px #0cdbf2;
+  animation: neon-flicker 1.5s infinite;
+}
+
+@keyframes neon-flicker {
+  0%,
+  100% {
+    text-shadow: 0 0 7px #fff, 0 0 10px #fff, 0 0 21px #fff, 0 0 42px #0cdbf2,
+      0 0 82px #0cdbf2, 0 0 92px #0cdbf2, 0 0 102px #0cdbf2, 0 0 151px #0cdbf2;
+  }
+  50% {
+    text-shadow: none;
+  }
+  70% {
+    text-shadow: 0 0 7px #fff, 0 0 10px #fff, 0 0 21px #fff, 0 0 42px #0cdbf2,
+      0 0 82px #0cdbf2, 0 0 92px #0cdbf2, 0 0 102px #0cdbf2, 0 0 151px #0cdbf2;
+  }
 }
 
 .background {
   background: url("/de-mol-logo.png") no-repeat 90% 75%;
   background-size: 20rem;
 }
-
 
 @media (max-width: 768px) {
   .background {

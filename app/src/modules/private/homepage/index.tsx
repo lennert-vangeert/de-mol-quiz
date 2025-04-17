@@ -21,7 +21,6 @@ import {
 } from "@global/api/requests";
 import { TOKEN, USERID } from "@global/api/auth";
 import classes from "./homepage.module.css";
-import { useNeonFlicker } from "@global/hooks/useNeonFlicker";
 
 export type Quiz = {
   _id: string;
@@ -47,7 +46,6 @@ const Homepage = () => {
   const [loading, setLoading] = React.useState<boolean>(true);
   // Store correct answers in a ref to keep them out of the rendered state.
   const answerKeyRef = React.useRef<{ [questionId: string]: string }>({});
-  useNeonFlicker(classes.neontitle);
 
   // Initialize the Mantine form with dynamic keys.
   const form = useForm<{ [key: string]: string }>({
@@ -127,6 +125,7 @@ const Homepage = () => {
     // Only run on mount.
   }, []);
 
+
   const handleSubmit = form.onSubmit((values) => {
     let totalScore = 0;
     const answers =
@@ -165,7 +164,6 @@ const Homepage = () => {
       </Center>
     );
   }
-  console.log(TOKEN);
   return (
     <>
       <Head

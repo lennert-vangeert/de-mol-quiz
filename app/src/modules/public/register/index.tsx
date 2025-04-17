@@ -1,4 +1,5 @@
 import {
+  Anchor,
   Button,
   Center,
   Group,
@@ -11,13 +12,12 @@ import {
 import * as React from "react";
 import { useForm } from "@mantine/form";
 import { API } from "@global/api/auth";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslate } from "@global/localization";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
   const { tL } = useTranslate();
-
   const [generalError, setGeneralError] = React.useState("");
 
   // If already logged in, bounce back to home
@@ -27,6 +27,7 @@ const RegisterPage = () => {
     }
   }, [navigate, tL]);
 
+  // Set up your form with Mantine’s validation rules
   const form = useForm({
     initialValues: {
       email: "",
@@ -35,37 +36,37 @@ const RegisterPage = () => {
     },
 
     validate: {
-      email: (value) => (/^\S+@\S+$/.test(value) ? null : "Ongeldige email"),
+      email: (value) =>
+        /^\S+@\S+\.\S+$/.test(value) ? null : "Ongeldige email",
       password: (value) =>
-        value.length < 6 ? "Wachtwoord moet minstens 6 tekens zijn" : null,
+        /^(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/.test(value)
+          ? null
+          : "Wachtwoord moet minstens 8 tekens zijn en een speciaal teken bevatten",
       confirmPassword: (value, values) =>
-        value !== values.password ? "Wachtwoorden komen niet overeen" : null,
+        value === values.password ? null : "Wachtwoorden komen niet overeen",
     },
   });
 
-  const handleRegister = React.useCallback(
-    (formData: {
-      email: string;
-      password: string;
-      confirmPassword: string;
-    }) => {
+  // This only runs **after** the form has passed validation
+  const registerUser = React.useCallback(
+    async (values: typeof form.values) => {
       setGeneralError("");
-      API.post("/register", {
-        email: formData.email,
-        password: formData.password,
-      })
-        .then((response) => {
-          if (response.status === 200) {
-            window.localStorage.setItem("token", response.data.token);
-            navigate("/");
-          }
-        })
-        .catch((err) => {
-          console.error(err);
-          setGeneralError("Er is iets misgegaan bij registratie");
+      try {
+        const response = await API.post("/register", {
+          email: values.email,
+          password: values.password,
         });
+
+        if (response.status === 200) {
+          window.localStorage.setItem("token", response.data.token);
+          navigate(tL("/"));
+        }
+      } catch (err) {
+        console.error(err);
+        setGeneralError("Er is iets misgegaan bij registratie");
+      }
     },
-    [navigate]
+    [navigate, tL]
   );
 
   return (
@@ -81,12 +82,8 @@ const RegisterPage = () => {
           </Text>
         )}
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleRegister(form.values);
-          }}
-        >
+        {/* <-- Notice: we hand Mantine the registerUser callback directly */}
+        <form onSubmit={form.onSubmit(registerUser)}>
           <TextInput
             label="Email"
             placeholder="jouw@email.com"
@@ -109,6 +106,9 @@ const RegisterPage = () => {
           />
 
           <Group mt="md">
+            <Anchor component={Link} to="/login" size="sm">
+              Heb je al een account? Log in
+            </Anchor>
             <Button type="submit">Registreren</Button>
           </Group>
         </form>

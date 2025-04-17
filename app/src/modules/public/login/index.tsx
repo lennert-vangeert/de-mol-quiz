@@ -1,26 +1,34 @@
-import { Button, Center, Group, Paper, Text, TextInput, Title } from "@mantine/core";
+import {
+  Anchor,
+  Button,
+  Center,
+  Group,
+  Paper,
+  Text,
+  TextInput,
+  Title,
+} from "@mantine/core";
 import * as React from "react";
 import { useForm } from "@mantine/form";
 import { API } from "@global/api/auth";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useTranslate } from "@global/localization";
 
 const LoginPage = () => {
-  const navigate = useNavigate();
   const { tL } = useTranslate();
 
   const [generalError, setGeneralError] = React.useState("");
 
   React.useEffect(() => {
     if (window.localStorage.getItem("token")) {
-      navigate(tL("/"));
+      window.location.href = tL("/");
     }
   }, []);
 
   const form = useForm({
     initialValues: {
-      email: "admin@test.com",
-      password: "secret123",
+      email: "",
+      password: "",
     },
 
     validate: {
@@ -38,7 +46,7 @@ const LoginPage = () => {
           if (response.status === 200) {
             console.log(response.data);
             window.localStorage.setItem("token", response.data.token);
-            navigate("/");
+            window.location.href = tL("/");
           }
         })
         .catch(() => {
@@ -81,6 +89,9 @@ const LoginPage = () => {
           />
 
           <Group justify="flex-end" mt="md">
+            <Anchor component={Link} to="/register" size="sm">
+              Nog geen account? Registreer hier
+            </Anchor>
             <Button type="submit">Log in</Button>
           </Group>
         </form>
