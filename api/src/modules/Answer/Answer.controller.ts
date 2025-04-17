@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { AuthRequest } from "../../middleware/auth/authMiddleware";
-import notFoundError from "../../middleware/error/NotFoundError";
+import notFoundError from "../../middleware/error/NothingFoundError";
 import Quiz from "../Quiz/Quiz.model";
 import answerModel from "./Answer.model";
 const getAnswerDetail = async (
