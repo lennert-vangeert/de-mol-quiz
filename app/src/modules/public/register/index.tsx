@@ -56,17 +56,13 @@ const RegisterPage = () => {
       })
         .then((response) => {
           if (response.status === 200) {
-            // assuming your register endpoint returns a token
             window.localStorage.setItem("token", response.data.token);
             navigate("/");
           }
         })
         .catch((err) => {
           console.error(err);
-          setGeneralError(
-            err.response?.data?.message ||
-              "Er is iets misgegaan bij registratie"
-          );
+          setGeneralError("Er is iets misgegaan bij registratie");
         });
     },
     [navigate]

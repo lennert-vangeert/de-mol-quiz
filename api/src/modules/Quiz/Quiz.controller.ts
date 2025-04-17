@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import Quiz from "./Quiz.model";
 import { AuthRequest } from "../../middleware/auth/authMiddleware";
 import notFoundError from "../../middleware/error/notFoundError";
+import { CURRENTWEEK } from "../../server";
 
 const getCurrentQuiz = async (
   req: Request,
@@ -10,7 +11,7 @@ const getCurrentQuiz = async (
 ) => {
   try {
     const quiz = await Quiz.findOne({
-      week: process.env.CURRENTWEEK ?? 0,
+      week: CURRENTWEEK ?? 0,
     });
     if (!quiz) {
       res.status(404).json({ message: "No quiz found" });

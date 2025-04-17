@@ -3,8 +3,10 @@ import mongoose from "mongoose";
 import app from "./app";
 import { Server } from "http";
 import UserModel from "./modules/Users/User.model";
-const port: number = parseInt(process.env.PORT ?? "9000");
+const port: number = parseInt(process.env.PORT ?? "9300");
 export let startTime: Date;
+
+export const CURRENTWEEK = process.env.CURRENTWEEK;
 
 if (process.env.MONGO_CONNECTION) {
   mongoose
@@ -15,9 +17,16 @@ if (process.env.MONGO_CONNECTION) {
       //start server
       const server = app.listen(port, () => {
         console.log(`Server is running on http://localhost:${port}`);
-        startTime = new Date();
       });
-      addAdminUser();
+
+      // const user = new UserModel({
+      //   email: "lennert.vangeert@gmail.com",
+      //   password: "[REDACTED]",
+      //   firstName: "Lennert",
+      //   lastName: "Van Geert",
+      // });
+      // user.save();
+
       server.on("SIGINT", () => stopServer(server));
       server.on("SIGTERM", () => stopServer(server));
     })
@@ -26,31 +35,6 @@ if (process.env.MONGO_CONNECTION) {
   throw new Error("MongoDB connection string not found");
 }
 
-const addAdminUser = async () => {
-  if (
-    (await UserModel.findOne({ email: "admin@test.com" })) ||
-    (await UserModel.findOne({ email: "regular@test.com" })) ||
-    process.env.ENVIRONMENT?.toString() == "production"
-  ) {
-    return;
-  }
-  const user1 = new UserModel({
-    email: "admin@test.com",
-    password: "secret123",
-    role: "ADMIN",
-    score: 0
-  });
-  user1.save();
-  const user2 = new UserModel({
-    email: "regular@test.com",
-    password: "secret123",
-    role: "REGULAR",
-    score: 0
-  });
-  user2.save();
-  console.log("Users seeded");
-};
-
 const stopServer = (server: Server) => {
   mongoose.connection.close();
   server.close(() => {
@@ -58,3 +42,4 @@ const stopServer = (server: Server) => {
     process.exit();
   });
 };
+

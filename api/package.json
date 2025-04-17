@@ -1,15 +1,16 @@
 {
   "name": "api",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "",
   "scripts": {
     "dev": "nodemon src/server.ts",
     "build": "esbuild src/server.ts --bundle --platform=node --outfile=dist/index.js --format=esm",
     "validate:types": "tsc --noemit"
   },
+  "type": "module",
   "author": "",
   "license": "ISC",
- "devDependencies": {
+  "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/compression": "^1.7.5",
     "@types/cors": "^2.8.17",
