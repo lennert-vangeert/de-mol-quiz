@@ -191,7 +191,7 @@ const Homepage = () => {
   return (
     <>
       <Head
-        title="De Mol Quiz"
+        title="Quiz"
         description="Weekly quiz for De Mol"
         SEODisabled
       />
