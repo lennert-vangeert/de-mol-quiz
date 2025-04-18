@@ -4,8 +4,6 @@ import { subscribeWithSelector } from "zustand/middleware";
 type AppState = {
   appTitle: string;
   author: string;
-  theme: string;
-  setTheme: (theme: string) => void;
   apiOrigin: string;
 
   //SEO
@@ -19,13 +17,8 @@ type AppState = {
 
 export default create<AppState>()(
   subscribeWithSelector((set) => ({
-    appTitle: "APP",
+    appTitle: "De mol quiz",
     author: "Lennert Van Geert",
-    theme: "light",
-    setTheme: (theme: string) =>
-      set({
-        theme,
-      }),
     apiOrigin: import.meta.env.VITE_API_URL || "http://localhost:9300",
 
     //SEO
