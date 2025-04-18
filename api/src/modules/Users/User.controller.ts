@@ -23,6 +23,7 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
         password: req.body.password,
         role: "REGULAR",
         score: 0,
+        name: req.body.name,
       });
       await newUser.save();
       res.status(200).json({ token: newUser.generateToken() });
@@ -30,6 +31,19 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
   } catch (error) {
     next(error);
   }
+};
+
+const getScoreBoard = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { user } = req as AuthRequest;
+  const scoreBoard = await User.find()
+    .sort({ score: -1 })
+    .limit(10)
+    .select("name score");
+  res.json(scoreBoard);
 };
 
 const getCurrentUser = (req: Request, res: Response, next: NextFunction) => {
@@ -41,4 +55,4 @@ const refreshToken = (req: Request, res: Response, next: NextFunction) => {
   const newToken = user.generateToken();
   res.json({ token: newToken, role: [user.role], userId: user._id });
 };
-export { login, getCurrentUser, register, refreshToken };
+export { login, getCurrentUser, register, refreshToken, getScoreBoard };

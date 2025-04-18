@@ -10,4 +10,5 @@ export type User = Document &
         password: string;
         role: "ADMIN" | "REGULAR";
         score: number;
+        name: string;
     };

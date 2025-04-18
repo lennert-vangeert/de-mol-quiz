@@ -42,13 +42,34 @@ export const checkForAnswer = async (): Promise<{
   hasUserSubmitted: boolean;
 }> => {
   try {
-    const response = await API.get("answers/check", {
+    const response = (await API.get("answers/check", {
       headers: {
         authorization: `Bearer ${TOKEN}`,
       },
-    });
+    })) as {
+      data: { hasUserSubmitted: boolean };
+    };
 
     return response.data; // THIS is the object with hasUserSubmitted
+  } catch (error) {
+    throw error;
+  }
+};
+
+export type scoreBoardOutput = {
+  _id: string;
+  name: string;
+  score: number;
+};
+
+export const getScoreBoard = async (): Promise<scoreBoardOutput[]> => {
+  try {
+    const response = (await API.get("scoreboard", {
+      headers: {
+        authorization: `Bearer ${TOKEN}`,
+      },
+    })) as { data: scoreBoardOutput[] };
+    return response.data;
   } catch (error) {
     throw error;
   }

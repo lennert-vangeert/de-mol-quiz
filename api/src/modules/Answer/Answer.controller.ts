@@ -3,6 +3,7 @@ import { AuthRequest } from "../../middleware/auth/authMiddleware";
 import notFoundError from "../../middleware/error/NothingFoundError";
 import Quiz from "../Quiz/Quiz.model";
 import answerModel from "./Answer.model";
+import UserModel from "../Users/User.model";
 const getAnswerDetail = async (
   req: Request,
   res: Response,
@@ -48,6 +49,16 @@ const createAnswer = async (
       userId: user._id,
     });
     const result = await answer.save();
+    try {
+      const dbUser = await UserModel.findById(user._id);
+      if (!dbUser) {
+        throw new notFoundError("User not found");
+      }
+      dbUser.score += req.body.totalScore;
+      await dbUser.save();
+    } catch (e) {
+      throw new notFoundError("User not found");
+    }
 
     res.json(result);
   } catch (e) {

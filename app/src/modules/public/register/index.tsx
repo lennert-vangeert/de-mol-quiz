@@ -31,12 +31,14 @@ const RegisterPage = () => {
   // Set up your form with Mantine’s validation rules
   const form = useForm({
     initialValues: {
+      name: "",
       email: "",
       password: "",
       confirmPassword: "",
     },
 
     validate: {
+      name: (value) => (value.length > 0 ? null : "Naam is verplicht"),
       email: (value) =>
         /^\S+@\S+\.\S+$/.test(value) ? null : "Ongeldige email",
       password: (value) =>
@@ -55,6 +57,7 @@ const RegisterPage = () => {
       setLoading(true); // Start loading
       try {
         const response = await API.post("/register", {
+          name: values.name,
           email: values.email,
           password: values.password,
         });
@@ -67,7 +70,7 @@ const RegisterPage = () => {
         console.error(err);
         setGeneralError("Er is iets misgegaan bij registratie");
       } finally {
-        setLoading(false); // End loading
+        setLoading(false);
       }
     },
     [navigate, tL]
@@ -93,6 +96,12 @@ const RegisterPage = () => {
         )}
 
         <form onSubmit={form.onSubmit(registerUser)}>
+          <TextInput
+            label="Naam"
+            placeholder="jan jansens"
+            mb="sm"
+            {...form.getInputProps("name")}
+          />
           <TextInput
             label="Email"
             placeholder="jouw@email.com"

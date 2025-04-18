@@ -20,9 +20,9 @@ import {
   sendAnswer,
   checkForAnswer,
 } from "@global/api/requests";
-import { USERID } from "@global/api/auth";
+import { TOKEN, USERID } from "@global/api/auth";
 import classes from "./homepage.module.css";
-
+console.log(TOKEN);
 export type Quiz = {
   _id: string;
   week: number;
@@ -180,7 +180,7 @@ const Homepage = () => {
             style={{ width: "100%", maxWidth: 600 }}
           >
             <Text>{error}</Text>
-            <Anchor component="button" onClick={() => window.location.reload()} >
+            <Anchor component="button" onClick={() => window.location.reload()}>
               Refresh
             </Anchor>
           </Paper>
