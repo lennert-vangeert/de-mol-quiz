@@ -3,7 +3,6 @@ import {
   AppShellHeader,
   Box,
   Flex,
-  Group,
   Text,
   useMantineTheme,
   Drawer,
