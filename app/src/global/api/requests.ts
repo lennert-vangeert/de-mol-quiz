@@ -26,7 +26,6 @@ type answerInput = {
 };
 
 export const sendAnswer = async (answer: answerInput) => {
-  console.log("Sending answer:", answer);
   try {
     await API.post("answers", answer, {
       headers: {

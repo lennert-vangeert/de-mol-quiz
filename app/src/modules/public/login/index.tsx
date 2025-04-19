@@ -51,7 +51,6 @@ const LoginPage = () => {
       API.post("/login", formData)
         .then((response) => {
           if (response.status === 200) {
-            console.log(response.data);
             window.localStorage.setItem("token", response.data.token);
             window.location.href = tL("/");
           }

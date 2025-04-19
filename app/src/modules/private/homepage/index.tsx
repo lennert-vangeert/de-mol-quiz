@@ -20,9 +20,8 @@ import {
   sendAnswer,
   checkForAnswer,
 } from "@global/api/requests";
-import { TOKEN, USERID } from "@global/api/auth";
+import { USERID } from "@global/api/auth";
 import classes from "./homepage.module.css";
-console.log(TOKEN);
 export type Quiz = {
   _id: string;
   week: number;
@@ -59,7 +58,6 @@ const Homepage = () => {
     const checkSubmissionStatus = async () => {
       try {
         const response = await checkForAnswer();
-        console.log("Submission response:", response);
         if (response.hasUserSubmitted === true) {
           setIsSubmitted(true);
         }
@@ -158,7 +156,6 @@ const Homepage = () => {
     };
     sendAnswer(answerPayload)
       .then(() => {
-        console.log("Answer sent successfully:", answerPayload);
         setLoading(false);
         setIsSubmitted(true);
       })
