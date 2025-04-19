@@ -8,27 +8,29 @@ import {
   Text,
   TextInput,
   Title,
+  useMantineTheme,
 } from "@mantine/core";
 import * as React from "react";
 import { useForm } from "@mantine/form";
 import { API } from "@global/api/auth";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslate } from "@global/localization";
+import { useMediaQuery } from "@mantine/hooks";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
   const { tL } = useTranslate();
+  const theme = useMantineTheme();
+  const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
   const [generalError, setGeneralError] = React.useState("");
-  const [loading, setLoading] = React.useState(false); // NEW loading state
+  const [loading, setLoading] = React.useState(false);
 
-  // If already logged in, bounce back to home
   React.useEffect(() => {
     if (window.localStorage.getItem("token")) {
       navigate(tL("/"));
     }
   }, [navigate, tL]);
 
-  // Set up your form with Mantine’s validation rules
   const form = useForm({
     initialValues: {
       name: "",
@@ -50,11 +52,10 @@ const RegisterPage = () => {
     },
   });
 
-  // This only runs **after** the form has passed validation
   const registerUser = React.useCallback(
     async (values: typeof form.values) => {
       setGeneralError("");
-      setLoading(true); // Start loading
+      setLoading(true);
       try {
         const response = await API.post("/register", {
           name: values.name,
@@ -78,7 +79,16 @@ const RegisterPage = () => {
 
   return (
     <Center h="100vh">
-      <Paper shadow="xl" withBorder miw="20rem" px="1.5rem" py="1.5rem">
+      <Paper
+        shadow="xl"
+        withBorder={!isMobile}
+        miw="18rem"
+        px="1.5rem"
+        py="1rem"
+      >
+        <Title ta="center" mb="0.5rem" order={4}>
+          De mol quiz
+        </Title>
         <Title mb="0.75rem" order={5}>
           Registreren
         </Title>
