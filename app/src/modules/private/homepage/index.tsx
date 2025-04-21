@@ -20,7 +20,7 @@ import {
   sendAnswer,
   checkForAnswer,
 } from "@global/api/requests";
-import { USERID } from "@global/api/auth";
+import { TOKEN, USERID } from "@global/api/auth";
 import classes from "./homepage.module.css";
 export type Quiz = {
   _id: string;
@@ -39,7 +39,7 @@ export type Quiz = {
     correctAnswer?: string;
   }[];
 };
-
+console.log(TOKEN);
 const Homepage = () => {
   const [quiz, setQuiz] = React.useState<Quiz | null>(null);
   const [isSubmitted, setIsSubmitted] = React.useState<boolean>(false);
@@ -69,7 +69,11 @@ const Homepage = () => {
     // Async function to fetch quiz data.
     const fetchQuiz = async () => {
       try {
-        const response = await getCurrentQuiz().catch(() => {
+        const response = await getCurrentQuiz().catch((e) => {
+          if (e.status === 404) {
+            setError("Er is nog geen quiz beschikbaar voor deze week.");
+            return;
+          }
           setError("Er ging iets fout, probeer het opnieuw.");
         });
         const rawQuiz: Quiz = response?.data;
@@ -187,11 +191,7 @@ const Homepage = () => {
   }
   return (
     <>
-      <Head
-        title="Quiz"
-        description="Weekly quiz for De Mol"
-        SEODisabled
-      />
+      <Head title="Quiz" description="Weekly quiz for De Mol" SEODisabled />
       {!isSubmitted ? (
         <Center mih="80vh" p="2rem" className={classes.background}>
           <Box p="md" w="100%" maw="45rem">
