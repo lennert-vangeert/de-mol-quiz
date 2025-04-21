@@ -15,6 +15,7 @@ import { API } from "@global/api/auth";
 import { Link } from "react-router-dom";
 import { useTranslate } from "@global/localization";
 import { useMediaQuery } from "@mantine/hooks";
+import Head from "@global/head";
 
 const LoginPage = () => {
   const { tL } = useTranslate();
@@ -66,61 +67,64 @@ const LoginPage = () => {
   );
 
   return (
-    <Center h="100vh">
-      <Paper
-        shadow="xl"
-        withBorder={!isMobile}
-        miw="18rem"
-        px="1.5rem"
-        py="1rem"
-      >
-        <Title ta="center" mb="0.5rem" order={4}>
-          De mol quiz
-        </Title>
-        <Title mb="0.5rem" order={5}>
-          Log in
-        </Title>
-        {loading && (
-          <Text size="xs" mt="sm" mb=".5rem" c="dimmed">
-            De server is waarschijnlijk aan het opstarten...
-          </Text>
-        )}
-        {generalError && (
-          <Text c="red" size="sm" mb="1.5rem">
-            {generalError}
-          </Text>
-        )}
-
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleLogin(form.values);
-          }}
+    <>
+    <Head title="Inloggen" description="Log in" />
+      <Center h="100vh">
+        <Paper
+          shadow="xl"
+          withBorder={!isMobile}
+          miw="18rem"
+          px="1.5rem"
+          py="1rem"
         >
-          <TextInput
-            label="Email"
-            placeholder="jouw@email.com"
-            key={form.key("email")}
-            {...form.getInputProps("email")}
-          />
-          <TextInput
-            label="Password"
-            type="password"
-            key={form.key("password")}
-            {...form.getInputProps("password")}
-          />
+          <Title ta="center" mb="0.5rem" order={4}>
+            De mol quiz
+          </Title>
+          <Title mb="0.5rem" order={5}>
+            Log in
+          </Title>
+          {loading && (
+            <Text size="xs" mt="sm" mb=".5rem" c="dimmed">
+              De server is waarschijnlijk aan het opstarten...
+            </Text>
+          )}
+          {generalError && (
+            <Text c="red" size="sm" mb="1.5rem">
+              {generalError}
+            </Text>
+          )}
 
-          <Group justify="flex-end" mt="md">
-            <Anchor component={Link} to={tL("/register")} size="sm">
-              Nog geen account? Registreer hier
-            </Anchor>
-            <Button type="submit" loading={loading}>
-              Log in
-            </Button>
-          </Group>
-        </form>
-      </Paper>
-    </Center>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin(form.values);
+            }}
+          >
+            <TextInput
+              label="Email"
+              placeholder="jouw@email.com"
+              key={form.key("email")}
+              {...form.getInputProps("email")}
+            />
+            <TextInput
+              label="Password"
+              type="password"
+              key={form.key("password")}
+              {...form.getInputProps("password")}
+            />
+
+            <Group justify="flex-end" mt="md">
+              <Anchor component={Link} to={tL("/register")} size="sm">
+                Nog geen account? Registreer hier
+              </Anchor>
+              <Button type="submit" loading={loading}>
+                Log in
+              </Button>
+            </Group>
+          </form>
+        </Paper>
+      </Center>
+    </>
   );
 };
 
