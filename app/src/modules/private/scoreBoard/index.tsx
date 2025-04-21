@@ -37,7 +37,7 @@ const ScoreBoardPage = () => {
   // Rows for the Mantine Table
   const rows = scoreBoard.map((entry) => (
     <React.Fragment key={entry._id}>
-      {entry.name && (
+      {entry.name && entry.name !== "Lennert Van Geert" && (
         <Table.Tr>
           <Table.Td>{entry.name}</Table.Td>
           <Table.Td>{entry.score}</Table.Td>

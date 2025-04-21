@@ -39,7 +39,6 @@ export type Quiz = {
     correctAnswer?: string;
   }[];
 };
-console.log(TOKEN);
 const Homepage = () => {
   const [quiz, setQuiz] = React.useState<Quiz | null>(null);
   const [isSubmitted, setIsSubmitted] = React.useState<boolean>(false);

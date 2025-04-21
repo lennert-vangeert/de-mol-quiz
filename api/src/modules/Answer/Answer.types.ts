@@ -3,7 +3,8 @@ import { Document, ObjectId } from "mongoose";
 export type Answer = Document & {
   _id?: ObjectId;
   quizId: ObjectId;
-  userId: ObjectId; 
+  userId: ObjectId;
+  userName?: string;
   answers: {
     questionId: string;
     userAnswer: string;
@@ -11,4 +12,5 @@ export type Answer = Document & {
     pointsAwarded: number;
   }[];
   totalScore: number;
+  closed: boolean;
 };

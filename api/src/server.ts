@@ -2,7 +2,7 @@ import "dotenv/config";
 import mongoose from "mongoose";
 import app from "./app";
 import { Server } from "http";
-import UserModel from "./modules/Users/User.model";
+import { closeOldAnswers } from "./modules/Answer/Answer.controller";
 const port: number = parseInt(process.env.PORT ?? "9300");
 if (process.env.MONGO_CONNECTION) {
   mongoose
@@ -13,8 +13,8 @@ if (process.env.MONGO_CONNECTION) {
       //start server
       const server = app.listen(port, () => {
         console.log(`Server is running on http://localhost:${port}`);
+        closeOldAnswers();
       });
-
       server.on("SIGINT", () => stopServer(server));
       server.on("SIGTERM", () => stopServer(server));
     })

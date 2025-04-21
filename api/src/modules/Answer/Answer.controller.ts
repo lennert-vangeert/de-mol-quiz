@@ -47,6 +47,8 @@ const createAnswer = async (
     const answer = new answerModel({
       ...req.body,
       userId: user._id,
+      userName: user.name,
+      closed: false,
     });
     const result = await answer.save();
     try {
@@ -94,4 +96,35 @@ const getCurrentUserAndWeekAnswer = async (
   }
 };
 
-export { createAnswer, getAnswerDetail, getCurrentUserAndWeekAnswer };
+const closeOldAnswers = async () => {
+  console.log("Closing old answers...");
+  try {
+    const currentWeekQuiz = await Quiz.findOne({
+      week: process.env.CURRENTWEEK ?? 0,
+    });
+    if (!currentWeekQuiz) {
+      return;
+    }
+    const answers = await answerModel.find({
+      quizId: currentWeekQuiz._id,
+    });
+    answers.forEach(async (answer) => {
+      try {
+        console.log(`Closing answer with id ${answer._id}`);
+        answer.closed = true;
+        await answer.save();
+      } catch (e) {
+        console.error(`Failed to close answer with id ${answer._id}:`, e);
+      }
+    });
+  } catch (e) {
+    console.error("Failed to close old answers:", e);
+  }
+};
+
+export {
+  createAnswer,
+  getAnswerDetail,
+  getCurrentUserAndWeekAnswer,
+  closeOldAnswers,
+};

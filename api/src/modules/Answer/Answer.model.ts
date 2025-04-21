@@ -14,6 +14,10 @@ const answerSchema = new mongoose.Schema(
       ref: "Users",
       required: true,
     },
+    userName: {
+      type: String,
+      required: false,
+    },
     answers: [
       {
         questionId: {
@@ -37,6 +41,10 @@ const answerSchema = new mongoose.Schema(
     totalScore: {
       type: Number,
       required: true,
+    },
+    closed: {
+      type: Boolean,
+      default: false,
     },
   },
   {
