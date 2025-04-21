@@ -4,6 +4,9 @@ import notFoundError from "../../middleware/error/NothingFoundError";
 import Quiz from "../Quiz/Quiz.model";
 import answerModel from "./Answer.model";
 import UserModel from "../Users/User.model";
+import { sendMail } from "../../mail/sendMail";
+import { generateNewSubmissionEmail } from "../../mail/mails/newSubmission";
+import { generateConfirmSubmissionEmail } from "../../mail/mails/confirmSubmission";
 const getAnswerDetail = async (
   req: Request,
   res: Response,
@@ -63,6 +66,16 @@ const createAnswer = async (
     }
 
     res.json(result);
+    sendMail(
+      process.env.ADMIN_EMAIL ?? "",
+      "New Quiz Submission",
+      generateNewSubmissionEmail(result)
+    );
+    sendMail(
+      user.email,
+      "Je quiz inzending is ontvangen",
+      generateConfirmSubmissionEmail(result)
+    );
   } catch (e) {
     next(e);
   }
@@ -97,7 +110,6 @@ const getCurrentUserAndWeekAnswer = async (
 };
 
 const closeOldAnswers = async () => {
-  console.log("Closing old answers...");
   try {
     const currentWeekQuiz = await Quiz.findOne({
       week: process.env.CURRENTWEEK ?? 0,
@@ -106,7 +118,8 @@ const closeOldAnswers = async () => {
       return;
     }
     const answers = await answerModel.find({
-      quizId: currentWeekQuiz._id,
+      quizId: { $ne: currentWeekQuiz._id },
+      closed: false,
     });
     answers.forEach(async (answer) => {
       try {

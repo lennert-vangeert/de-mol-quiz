@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import User from "./User.model";
 import { AuthRequest } from "../../middleware/auth/authMiddleware";
+import { sendMail } from "../../mail/sendMail";
+import { generateNewQuizEmail } from "../../mail/mails/newQuiz";
 
 const login = async (req: Request, res: Response, next: NextFunction) => {
   const { user } = req as AuthRequest;
@@ -44,6 +46,18 @@ const getScoreBoard = async (
     .limit(10)
     .select("name score");
   res.json(scoreBoard);
+};
+
+const sendNewQuizEmailToAllUsers = async () => {
+  const users = await User.find().select("email name").lean();
+  console.log(users);
+  users.forEach((user) => {
+    sendMail(
+      user.email,
+      `De nieuwe molquiz is er!`,
+      generateNewQuizEmail("5")
+    );
+  });
 };
 
 const getCurrentUser = (req: Request, res: Response, next: NextFunction) => {
