@@ -5,13 +5,17 @@ import "@mantine/core/styles.css";
 import { MantineStyles } from "@global/style/mantineTheme/index.tsx";
 import { HelmetProvider } from "react-helmet-async";
 import { router } from "./modules/routes";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <HelmetProvider>
-      <MantineStyles>
-        <RouterProvider router={router} />
-      </MantineStyles>
-    </HelmetProvider>
-  </StrictMode>
+  <>
+    <SpeedInsights />
+    <StrictMode>
+      <HelmetProvider>
+        <MantineStyles>
+          <RouterProvider router={router} />
+        </MantineStyles>
+      </HelmetProvider>
+    </StrictMode>
+  </>
 );
