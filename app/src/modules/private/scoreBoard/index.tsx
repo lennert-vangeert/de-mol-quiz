@@ -1,8 +1,8 @@
 import {
   Anchor,
   Center,
-  Loader,
   Paper,
+  Skeleton,
   Table,
   Text,
   Title,
@@ -38,7 +38,7 @@ const ScoreBoardPage = () => {
   const rows = scoreBoard.map((entry) => (
     <React.Fragment key={entry._id}>
       {entry.name && entry.name !== "Lennert Van Geert" && (
-        <Table.Tr>
+        <Table.Tr h="2rem">
           <Table.Td>{entry.name}</Table.Td>
           <Table.Td>{entry.score}</Table.Td>
         </Table.Tr>
@@ -47,14 +47,20 @@ const ScoreBoardPage = () => {
   ));
 
   // Loading or error state
-  if (loading || error) {
+  if (error) {
     return (
       <>
         <Head title="Scorebord" description="Bekijk de hoogste scores" />
-        <Center mih="75rem" p="2rem">
-          {loading && <Loader />}
+        <Center mih="30rem" p="2rem">
           {error && (
-            <Paper shadow="xl" withBorder p="md" w="100%" maw="37.5rem">
+            <Paper
+              mih="60rem"
+              shadow="xl"
+              withBorder
+              p="md"
+              w="100%"
+              maw="37.5rem"
+            >
               <Text>{error}</Text>
               <Anchor
                 component="button"
@@ -78,11 +84,63 @@ const ScoreBoardPage = () => {
         SEODisabled
       />
       <Center p="2rem" mih="75vh">
-        <Paper shadow="xl" withBorder p="md" w="100%" maw="37.5rem">
+        <Paper mih="30rem" shadow="xl" withBorder p="md" w="100%" maw="37.5rem">
           <Title order={2} mb="md">
             Scorebord
           </Title>
-          {scoreBoard.length > 0 ? (
+          {loading && (
+            <Table>
+              <Table.Thead>
+                <Table.Tr h="2rem">
+                  <Table.Th>Naam</Table.Th>
+                  <Table.Th>Score</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                <Table.Tr h="2rem">
+                  <Table.Td>
+                    <Skeleton miw="8.7rem" w="100%" h={20} />
+                  </Table.Td>
+                  <Table.Td>
+                    <Skeleton w="35%" h={20} />
+                  </Table.Td>
+                </Table.Tr>
+                <Table.Tr h="2rem">
+                  <Table.Td>
+                    <Skeleton miw="8.7rem" w="100%" h={20} />
+                  </Table.Td>
+                  <Table.Td>
+                    <Skeleton w="35%" h={20} />
+                  </Table.Td>
+                </Table.Tr>
+                <Table.Tr h="2rem">
+                  <Table.Td>
+                    <Skeleton miw="8.7rem" w="100%" h={20} />
+                  </Table.Td>
+                  <Table.Td>
+                    <Skeleton w="35%" h={20} />
+                  </Table.Td>
+                </Table.Tr>
+                <Table.Tr h="2rem">
+                  <Table.Td>
+                    <Skeleton miw="8.7rem" w="100%" h={20} />
+                  </Table.Td>
+                  <Table.Td>
+                    <Skeleton w="35%" h={20} />
+                  </Table.Td>
+                </Table.Tr>
+                <Table.Tr h="2rem">
+                  <Table.Td>
+                    <Skeleton miw="8.7rem" w="100%" h={20} />
+                  </Table.Td>
+                  <Table.Td>
+                    <Skeleton w="35%" h={20} />
+                  </Table.Td>
+                </Table.Tr>
+              </Table.Tbody>
+            </Table>
+          )}
+          {scoreBoard.length > 0 && (
             <Table>
               <Table.Thead>
                 <Table.Tr>
@@ -92,8 +150,9 @@ const ScoreBoardPage = () => {
               </Table.Thead>
               <Table.Tbody>{rows}</Table.Tbody>
             </Table>
-          ) : (
-            <Text>Nog geen scores beschikbaar.</Text>
+          )}
+          {scoreBoard.length === 0 && !loading && (
+            <Text>Er zijn nog geen scores.</Text>
           )}
         </Paper>
       </Center>
