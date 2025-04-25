@@ -2,9 +2,10 @@ import { AppShell, Box } from "@mantine/core";
 import Header from "../header";
 import Footer from "../footer";
 import { ReactNode, useMemo } from "react";
-import { useMediaQuery } from "@mantine/hooks";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { Outlet } from "react-router-dom";
 import style from "./pageWrapper.module.css";
+import CookieBanner from "@common/cookieBanner";
 
 type PageWrapperProps = {
   children?: ReactNode;
@@ -13,6 +14,9 @@ type PageWrapperProps = {
 const PageWrapper = ({ children }: PageWrapperProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const isTablet = useMediaQuery("(min-width: 769px) and (max-width: 1024px)");
+  const [opened, { close }] = useDisclosure(
+    document.cookie.indexOf("ANALYTICAL_COOKIES_ENABLED") === -1
+  );
 
   const margin = useMemo(() => {
     if (isMobile) {
@@ -32,6 +36,7 @@ const PageWrapper = ({ children }: PageWrapperProps) => {
         {children ?? <Outlet />}
       </Box>
       <Footer />
+      <CookieBanner opened={opened} close={close} />
     </AppShell>
   );
 };
