@@ -8,10 +8,7 @@ import { router } from "./modules/routes";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { initGA } from "@global/analytics/ga";
 
-if (
-  document.cookie.indexOf("ANALYTICAL_COOKIES_ENABLED") === -1 ||
-  document.cookie.indexOf("ANALYTICAL_COOKIES_ENABLED=false") !== -1
-) {
+if (document.cookie.split("; ").includes("ANALYTICAL_COOKIES_ENABLED=true")) {
   initGA(); // Initialize Google Analytics
 }
 
