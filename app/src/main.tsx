@@ -6,6 +6,9 @@ import { MantineStyles } from "@global/style/mantineTheme/index.tsx";
 import { HelmetProvider } from "react-helmet-async";
 import { router } from "./modules/routes";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { initGA } from "@global/analytics/ga";
+
+initGA();
 
 createRoot(document.getElementById("root")!).render(
   <>

@@ -2,13 +2,17 @@ import ReactGA from "react-ga4";
 
 // initialize GA once
 export const initGA = () => {
-  ReactGA.initialize([
-    {
-      trackingId: import.meta.env.VITE_GA_MEASUREMENT_ID ?? "",
-      gaOptions: undefined, // Add options here if needed
-      gtagOptions: undefined, // Add tag options here if needed
-    },
-  ]);
+  try {
+    ReactGA.initialize([
+      {
+        trackingId: import.meta.env.VITE_GA_MEASUREMENT_ID ?? "",
+        gaOptions: undefined, // Add options here if needed
+        gtagOptions: undefined, // Add tag options here if needed
+      },
+    ]);
+  } catch (error) {
+    console.error("Error initializing Google Analytics:", error);
+  }
 };
 
 // log a pageview

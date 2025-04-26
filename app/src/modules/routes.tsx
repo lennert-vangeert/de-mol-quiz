@@ -1,21 +1,24 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   createBrowserRouter,
   Outlet,
   useRouteError,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import { I18nProvider, PushLocaleToRoute } from "@global/localization";
 import { publicRoutes } from "./public";
 import ErrorPage from "./misc/errorPage";
 import { privateRoutes } from "./private";
+import { logPageView } from "@global/analytics/ga";
 
 function Root({ children }: { children?: React.ReactNode }) {
-  return (
-    <I18nProvider>
-      {children ?? <Outlet />}
-    </I18nProvider>
-  );
+  const location = useLocation();
+  useEffect(() => {
+    console.log("Page view logged:", location.pathname + location.search);
+    logPageView(location.pathname + location.search);
+  }, [location]);
+  return <I18nProvider>{children ?? <Outlet />}</I18nProvider>;
 }
 
 // A simple error boundary that catches route errors and displays the NotFoundPage.
@@ -38,7 +41,7 @@ const appRoutes = [
     element: <PushLocaleToRoute />,
     children: [
       ...publicRoutes,
-      ...privateRoutes
+      ...privateRoutes,
       // If you had any private or other routes, they’d go here
     ],
   },
