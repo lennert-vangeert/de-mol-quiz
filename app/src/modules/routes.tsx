@@ -15,7 +15,6 @@ import { logPageView } from "@global/analytics/ga";
 function Root({ children }: { children?: React.ReactNode }) {
   const location = useLocation();
   useEffect(() => {
-    console.log("Page view logged:", location.pathname + location.search);
     logPageView(location.pathname + location.search);
   }, [location]);
   return <I18nProvider>{children ?? <Outlet />}</I18nProvider>;
