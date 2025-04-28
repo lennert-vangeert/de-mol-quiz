@@ -2,9 +2,7 @@ import "dotenv/config";
 import mongoose from "mongoose";
 import app from "./app";
 import { Server } from "http";
-import { closeOldAnswers } from "./modules/Answer/Answer.controller";
-import { sendMail, transporter } from "./mail/sendMail";
-import { generateNewQuizEmail } from "./mail/mails/newQuiz";
+import { transporter } from "./mail/sendMail";
 const port: number = parseInt(process.env.PORT ?? "9300");
 if (process.env.MONGO_CONNECTION) {
   mongoose
@@ -23,7 +21,6 @@ if (process.env.MONGO_CONNECTION) {
           .catch((err) => {
             console.error("Mail transporter error", err);
           });
-        closeOldAnswers();
       });
       server.on("SIGINT", () => stopServer(server));
       server.on("SIGTERM", () => stopServer(server));

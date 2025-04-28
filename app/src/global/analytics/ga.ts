@@ -18,10 +18,7 @@ export const initGA = () => {
 // log a pageview
 export const logPageView = (path: string, customTitle?: string): void => {
   // 1) Respect the user's cookie preferences
-  if (
-    document.cookie.indexOf("ANALYTICAL_COOKIES_ENABLED") === -1 ||
-    document.cookie.indexOf("ANALYTICAL_COOKIES_ENABLED=false") !== -1
-  ) {
+  if (document.cookie.split("; ").includes("ANALYTICAL_COOKIES_ENABLED=true")) {
     return;
   }
 
@@ -43,8 +40,6 @@ export const logPageView = (path: string, customTitle?: string): void => {
       : // fallback: last segment of the original path (minus any leading slash)
         path.replace(/^.*\//, "") || "page");
 
-  console.log("Logging page view:", pagePath, computedTitle);
-
   ReactGA.send({
     hitType: "pageview",
     page: pagePath,
@@ -59,10 +54,7 @@ export const logEvent = (
   label?: string,
   value?: number
 ) => {
-  if (
-    document.cookie.indexOf("ANALYTICAL_COOKIES_ENABLED") === -1 ||
-    document.cookie.indexOf("ANALYTICAL_COOKIES_ENABLED=false") !== -1
-  )
+  if (document.cookie.split("; ").includes("ANALYTICAL_COOKIES_ENABLED=true"))
     return;
   ReactGA.event({ category, action, label, value });
 };
