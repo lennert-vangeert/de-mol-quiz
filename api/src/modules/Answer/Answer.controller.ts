@@ -71,11 +71,13 @@ const createAnswer = async (
       "New Quiz Submission",
       generateNewSubmissionEmail(result)
     );
-    sendMail(
-      user.email,
-      "Je quiz inzending is ontvangen",
-      generateConfirmSubmissionEmail(result)
-    );
+    if (user.receiveEmails) {
+      sendMail(
+        user.email,
+        "Je quiz inzending is ontvangen",
+        generateConfirmSubmissionEmail(result, user.email)
+      );
+    }
   } catch (e) {
     next(e);
   }

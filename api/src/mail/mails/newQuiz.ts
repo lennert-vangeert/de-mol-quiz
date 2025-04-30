@@ -1,4 +1,4 @@
-export const generateNewQuizEmail = (week: string) => {
+export const generateNewQuizEmail = (week: string, email: string) => {
   return `
         <!DOCTYPE html>
 <html lang="nl">
@@ -66,7 +66,7 @@ export const generateNewQuizEmail = (week: string) => {
     <p>Er is een nieuwe quiz toegevoegd voor week <strong>${week}</strong>! Pak je kans om te laten zien dat jij de mol het snelst doorgrondt.</p>
     <p>Klik op de knop hieronder om direct te starten.</p>
     <a href="https://de-mol-quiz.vercel.app" class="button">Start Quiz</a>
-    <p class="footer">Veel succes!<br/>Lennert Van Geert</p>
+    <p class="footer">Veel succes!<br/>Lennert Van Geert <br/> <a href="https://de-mol-quiz.vercel.app/unsubscribe?email=${encodeURIComponent(email)}">Unsubscribe</a></p>
   </div>
 </body>
 </html>

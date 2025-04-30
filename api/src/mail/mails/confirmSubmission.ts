@@ -1,6 +1,6 @@
 import { Answer } from "../../modules/Answer/Answer.types";
 
-export const generateConfirmSubmissionEmail = (answer: Answer) => {
+export const generateConfirmSubmissionEmail = (answer: Answer, email: string) => {
   const userLabel = answer.userName ?? "deelnemer";
   const score = answer.totalScore;
 
@@ -69,7 +69,7 @@ export const generateConfirmSubmissionEmail = (answer: Answer) => {
           Bekijk Scorebord
         </a>
       </p>
-      <p class="footer">Lennert Van Geert</p>
+      <p class="footer">Lennert Van Geert - <a href="https://de-mol-quiz.vercel.app/unsubscribe?email=${encodeURIComponent(email)}">Unsubscribe</a></p>
     </div>
   </body>
   </html>

@@ -5,6 +5,7 @@ import { sendMail } from "../../mail/sendMail";
 import { generateNewQuizEmail } from "../../mail/mails/newQuiz";
 
 const login = async (req: Request, res: Response, next: NextFunction) => {
+  console.debug("logging in user")
   const { user } = req as AuthRequest;
   const dataBaseUser = await User.findOne({ email: req.body.email });
 
@@ -15,6 +16,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 const register = async (req: Request, res: Response, next: NextFunction) => {
+  console.debug("registering user")
   const user = await User.findOne({ email: req.body.email });
   try {
     if (user) {
@@ -40,6 +42,7 @@ const getScoreBoard = async (
   res: Response,
   next: NextFunction
 ) => {
+  console.debug("getting scoreboard")
   const { user } = req as AuthRequest;
   try {
     const scoreBoard = await User.find()
@@ -53,17 +56,25 @@ const getScoreBoard = async (
 };
 
 const sendNewQuizEmailToAllUsers = async () => {
-  const users = await User.find().select("email name").lean();
+  console.debug("sending new quiz email to all users")
+  const users = await User.find({ receiveEmails: true });
   users.forEach((user) => {
-    sendMail(user.email, `De nieuwe molquiz is er!`, generateNewQuizEmail("7"));
+    sendMail(
+      user.email,
+      `De nieuwe molquiz is er!`,
+      generateNewQuizEmail("7", user.email)
+    );
   });
 };
 
+
 const getCurrentUser = (req: Request, res: Response, next: NextFunction) => {
+  console.debug("getting current user")
   const { user } = req as AuthRequest;
   res.json(user);
 };
 const refreshToken = (req: Request, res: Response, next: NextFunction) => {
+  console.debug("refreshing token")
   const { user } = req as AuthRequest;
   const newToken = user.generateToken();
   res.json({ token: newToken, role: [user.role], userId: user._id });
@@ -74,8 +85,8 @@ const unsubscribeFromEmails = async (
   res: Response,
   next: NextFunction
 ) => {
+  console.debug("unsubscribing user from emails")
   try {
-    console.log(req.body);
     const email = req.body.email;
     const user = await User.findOne({ email });
     if (!user) {
