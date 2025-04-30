@@ -68,7 +68,7 @@ const LoginPage = () => {
 
   return (
     <>
-    <Head title="Inloggen" description="Log in" />
+      <Head title="Inloggen" description="Log in" />
       <Center h="100vh">
         <Paper
           shadow="xl"
@@ -102,6 +102,7 @@ const LoginPage = () => {
           >
             <TextInput
               label="Email"
+              type="email"
               placeholder="jouw@email.com"
               key={form.key("email")}
               {...form.getInputProps("email")}

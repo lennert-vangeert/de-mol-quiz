@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { User } from "./User.types";
-import jwt from "jsonwebtoken";
+import { sign, SignOptions, Secret } from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { Document } from "mongodb";
 import isValidEmail from "../../validation/isValidEmail";
@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-    }
+    },
   },
   {
     timestamps: true,
@@ -77,10 +77,16 @@ userSchema.methods = {
       );
     });
   },
-  generateToken: function () {
-    const user = this;
-    return jwt.sign({ _id: user._id }, process.env.JWT_SECRET ?? "", {
-      expiresIn: 60 * 120, // 2 hours
+  generateToken: function (
+    this: { _id: string },
+    expiryTime: SignOptions["expiresIn"] = "2h"
+  ) {
+    const secret: Secret = process.env.JWT_SECRET ?? "";
+
+    return sign({ _id: this._id }, secret, {
+      expiresIn: expiryTime, 
+      issuer: "De-mol-quiz",
+      algorithm: "HS256",
     });
   },
 };
