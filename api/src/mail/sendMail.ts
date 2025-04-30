@@ -17,10 +17,15 @@ export const sendMail = async (
 ) => {
   try {
     await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+      from: `"Lennert van Geert" <${process.env.EMAIL_USER}>`,
       to,
       subject,
       html: content,
+      text: content,
+      replyTo: process.env.EMAIL_USER,
+      headers: {
+        'List-Unsubscribe': `<mailto:${process.env.EMAIL_USER}>`,
+      },
     });
     console.log("Email sent successfully to", to);
   } catch (error) {

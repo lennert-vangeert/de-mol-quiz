@@ -51,11 +51,7 @@ const getScoreBoard = async (
 const sendNewQuizEmailToAllUsers = async () => {
   const users = await User.find().select("email name").lean();
   users.forEach((user) => {
-    sendMail(
-      user.email,
-      `De nieuwe molquiz is er!`,
-      generateNewQuizEmail("7")
-    );
+    sendMail(user.email, `De nieuwe molquiz is er!`, generateNewQuizEmail("7"));
   });
 };
 
@@ -68,4 +64,11 @@ const refreshToken = (req: Request, res: Response, next: NextFunction) => {
   const newToken = user.generateToken();
   res.json({ token: newToken, role: [user.role], userId: user._id });
 };
-export { login, getCurrentUser, register, refreshToken, getScoreBoard, sendNewQuizEmailToAllUsers };
+export {
+  login,
+  getCurrentUser,
+  register,
+  refreshToken,
+  getScoreBoard,
+  sendNewQuizEmailToAllUsers,
+};

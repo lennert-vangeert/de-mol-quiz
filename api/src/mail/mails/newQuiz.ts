@@ -65,7 +65,7 @@ export const generateNewQuizEmail = (week: string) => {
     <h1>De Mol Quiz – Week ${week}</h1>
     <p>Er is een nieuwe quiz toegevoegd voor week <strong>${week}</strong>! Pak je kans om te laten zien dat jij de mol het snelst doorgrondt.</p>
     <p>Klik op de knop hieronder om direct te starten.</p>
-    <a href="de-mol-quiz.vercel.app" class="button">Start Quiz</a>
+    <a href="https://de-mol-quiz.vercel.app" class="button">Start Quiz</a>
     <p class="footer">Veel succes!<br/>Lennert Van Geert</p>
   </div>
 </body>
