@@ -7,18 +7,22 @@ import {
   useMantineTheme,
   Drawer,
   Burger,
+  Indicator,
 } from "@mantine/core";
 import AppIcon from "@common/appIcon/appIcon";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslate } from "@global/localization";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useMediaQuery } from "@mantine/hooks";
+import { checkForAnswer } from "@global/api/requests";
 
 const Header = () => {
   const { tL } = useTranslate();
   const navigate = useNavigate();
   const theme = useMantineTheme();
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.md})`);
+  const { pathname } = useLocation();
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleLogout = useCallback(() => {
     window.localStorage.removeItem("token");
@@ -30,6 +34,21 @@ const Header = () => {
   const closeDrawer = () => setDrawerOpened(false);
   const openDrawer = () => setDrawerOpened(true);
 
+  useEffect(() => {
+    const checkSubmissionStatus = async () => {
+      try {
+        const response = await checkForAnswer();
+        if (response.hasUserSubmitted) {
+          setIsSubmitted(true);
+        }
+      } catch {
+        setIsSubmitted(false);
+      }
+    };
+
+    checkSubmissionStatus();
+  }, []);
+
   const MenuLinks = () => (
     <Flex
       mx="2rem"
@@ -37,6 +56,13 @@ const Header = () => {
       gap={isMobile ? "xl" : "2rem"}
       align={isMobile ? "stretch" : "center"}
     >
+      {pathname === tL("/") ? null : (
+        <Indicator disabled={isSubmitted} size={12} color="red" processing>
+          <Anchor component={Link} to={tL("/")} onClick={closeDrawer}>
+            <Text size={isMobile ? "xl" : "1.25rem"}>Quiz</Text>
+          </Anchor>
+        </Indicator>
+      )}
       <Anchor component={Link} to={tL("/scoreboard")} onClick={closeDrawer}>
         <Text size={isMobile ? "xl" : "1.25rem"}>Scoreboard</Text>
       </Anchor>
