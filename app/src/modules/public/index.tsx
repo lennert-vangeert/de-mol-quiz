@@ -2,6 +2,7 @@ import { RouteObject } from "react-router-dom";
 import LoginPage from "./login";
 import RegisterPage from "./register";
 import { API } from "@global/api/auth";
+import UnsubscribePage from "./unsubscribe";
 
 export const publicRoutes: RouteObject[] = [
   {
@@ -14,6 +15,10 @@ export const publicRoutes: RouteObject[] = [
       {
         path: "register",
         element: <RegisterPage />,
+      },
+      {
+        path: "unsubscribe",
+        element: <UnsubscribePage />,
       },
     ],
   },

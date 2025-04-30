@@ -4,11 +4,12 @@ export type UserMethods = {
 };
 
 export type User = Document &
-    UserMethods & {
-        _id?: string;
-        email: string;
-        password: string;
-        role: "ADMIN" | "REGULAR";
-        score: number;
-        name: string;
-    };
+  UserMethods & {
+    _id?: string;
+    email: string;
+    password: string;
+    role: "ADMIN" | "REGULAR";
+    score: number;
+    name: string;
+    receiveEmails: boolean;
+  };

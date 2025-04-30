@@ -41,11 +41,15 @@ const getScoreBoard = async (
   next: NextFunction
 ) => {
   const { user } = req as AuthRequest;
-  const scoreBoard = await User.find()
-    .sort({ score: -1 })
-    .limit(10)
-    .select("name score");
-  res.json(scoreBoard);
+  try {
+    const scoreBoard = await User.find()
+      .sort({ score: -1 })
+      .limit(10)
+      .select("name score");
+    res.json(scoreBoard);
+  } catch {
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 const sendNewQuizEmailToAllUsers = async () => {
@@ -64,6 +68,26 @@ const refreshToken = (req: Request, res: Response, next: NextFunction) => {
   const newToken = user.generateToken();
   res.json({ token: newToken, role: [user.role], userId: user._id });
 };
+
+const unsubscribeFromEmails = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    console.log(req.body);
+    const email = req.body.email;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    user.receiveEmails = false;
+    await user.save();
+    res.status(200).json({ message: "Unsubscribed from emails" });
+  } catch {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 export {
   login,
   getCurrentUser,
@@ -71,4 +95,5 @@ export {
   refreshToken,
   getScoreBoard,
   sendNewQuizEmailToAllUsers,
+  unsubscribeFromEmails,
 };

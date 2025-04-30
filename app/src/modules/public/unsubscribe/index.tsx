@@ -1,0 +1,124 @@
+import Head from "@global/head";
+import {
+  Button,
+  Center,
+  Group,
+  Paper,
+  Text,
+  TextInput,
+  Title,
+  useMantineTheme,
+} from "@mantine/core";
+import * as React from "react";
+import { useTranslate } from "@global/localization";
+import { useMediaQuery } from "@mantine/hooks";
+import { useForm } from "@mantine/form";
+import { API } from "@global/api/auth";
+
+const UnsubscribePage = () => {
+  const { tL } = useTranslate();
+  const theme = useMantineTheme();
+  const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
+  const email = new URLSearchParams(window.location.search).get("email");
+
+  const [generalError, setGeneralError] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
+  const [success, setSuccess] = React.useState(false);
+  console.log("email", email);
+  const form = useForm({
+    initialValues: {
+      email: email ?? "",
+    },
+
+    validate: {
+      email: (value) => (/^\S+@\S+$/.test(value) ? null : "Ongeldige email"),
+    },
+  });
+
+  const handleUnsubscribe = React.useCallback(
+    (formData: { email: string }) => {
+      setGeneralError("");
+      setLoading(true);
+
+      API.post("/unsubscribe", formData)
+        .then((response) => {
+          if (response.status === 200) {
+            setSuccess(true);
+          } else {
+            setGeneralError("Er ging iets fout");
+          }
+        })
+        .catch(() => {
+          setGeneralError("Er ging iets fout");
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    },
+    [tL]
+  );
+  return (
+    <>
+      <Head
+        title="Unsubscribe"
+        SEODisabled
+        description="Unsubscribe from emails"
+      />
+      <Center h="100vh">
+        <Paper
+          shadow="xl"
+          withBorder={!isMobile}
+          miw="18rem"
+          px="1.5rem"
+          py="1rem"
+        >
+          <Title ta="center" mb="0.5rem" order={4}>
+            De mol quiz
+          </Title>
+          <Title mb="0.5rem" order={5}>
+            Unsubscribe
+          </Title>
+          {loading && (
+            <Text size="xs" mt="sm" mb=".5rem" c="dimmed">
+              De server is waarschijnlijk aan het opstarten...
+            </Text>
+          )}
+          {generalError && (
+            <Text c="red" size="sm" mb="1.5rem">
+              {generalError}
+            </Text>
+          )}
+          {success ? (
+            <Text c="green" size="sm" mb="1.5rem">
+              Je bent uitgeschreven van de emails.
+            </Text>
+          ) : (
+            <form>
+              <TextInput
+                label="Email"
+                type="email"
+                placeholder="jouw@email.com"
+                key={form.key("email")}
+                {...form.getInputProps("email")}
+              />
+
+              <Group justify="flex-end" mt="md">
+                <Button
+                  loading={loading}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleUnsubscribe(form.values);
+                  }}
+                >
+                  Unsubscribe
+                </Button>
+              </Group>
+            </form>
+          )}
+        </Paper>
+      </Center>
+    </>
+  );
+};
+
+export default UnsubscribePage;
