@@ -24,7 +24,7 @@ export const sendMail = async (
       text: content,
       replyTo: process.env.EMAIL_USER,
       headers: {
-        'List-Unsubscribe': `<mailto:${process.env.EMAIL_USER}>`,
+        'List-Unsubscribe': '<https://de-mol-quiz.vercel.app/unsubscribe>'
       },
     });
     console.log("Email sent successfully to", to);
