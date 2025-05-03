@@ -38,6 +38,14 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    resetPasswordCode: {
+      type: String,
+      default: null,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -88,7 +96,7 @@ userSchema.methods = {
     const secret: Secret = process.env.JWT_SECRET ?? "";
 
     return sign({ _id: this._id }, secret, {
-      expiresIn: expiryTime, 
+      expiresIn: expiryTime,
       issuer: "De-mol-quiz",
       algorithm: "HS256",
     });

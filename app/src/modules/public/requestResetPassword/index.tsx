@@ -15,18 +15,17 @@ import { useMediaQuery } from "@mantine/hooks";
 import { useForm } from "@mantine/form";
 import { API } from "@global/api/auth";
 
-const UnsubscribePage = () => {
+const RequestResetPasswordPage = () => {
   const { tL } = useTranslate();
   const theme = useMantineTheme();
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.sm})`);
-  const email = new URLSearchParams(window.location.search).get("email");
 
   const [generalError, setGeneralError] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [success, setSuccess] = React.useState(false);
   const form = useForm({
     initialValues: {
-      email: email ?? "",
+      email: "",
     },
 
     validate: {
@@ -34,12 +33,12 @@ const UnsubscribePage = () => {
     },
   });
 
-  const handleUnsubscribe = React.useCallback(
+  const handleRequestResetPassword = React.useCallback(
     (formData: { email: string }) => {
       setGeneralError("");
       setLoading(true);
 
-      API.post("/unsubscribe", formData)
+      API.post("/reset-password", formData)
         .then((response) => {
           if (response.status === 200) {
             setSuccess(true);
@@ -59,9 +58,9 @@ const UnsubscribePage = () => {
   return (
     <>
       <Head
-        title="Unsubscribe"
+        title="Wachtwoord reset"
         SEODisabled
-        description="Unsubscribe from emails"
+        description="Reset je wachtwoord"
       />
       <Center h="100vh">
         <Paper
@@ -75,7 +74,7 @@ const UnsubscribePage = () => {
             De mol quiz
           </Title>
           <Title mb="0.5rem" order={5}>
-            Unsubscribe
+            Wachtwoord reset
           </Title>
           {loading && (
             <Text size="xs" mt="sm" mb=".5rem" c="dimmed">
@@ -89,7 +88,8 @@ const UnsubscribePage = () => {
           )}
           {success ? (
             <Text c="green" size="sm" mb="1.5rem">
-              Je bent uitgeschreven van de emails.
+              Je zou een mail moeten ontvangen met een link om je wachtwoord
+              opnieuw in te stellen.
             </Text>
           ) : (
             <form>
@@ -106,10 +106,10 @@ const UnsubscribePage = () => {
                   loading={loading}
                   onClick={(e) => {
                     e.preventDefault();
-                    handleUnsubscribe(form.values);
+                    handleRequestResetPassword(form.values);
                   }}
                 >
-                  Unsubscribe
+                  Reset wachtwoord
                 </Button>
               </Group>
             </form>
@@ -120,4 +120,4 @@ const UnsubscribePage = () => {
   );
 };
 
-export default UnsubscribePage;
+export default RequestResetPasswordPage;

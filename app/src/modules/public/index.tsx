@@ -3,6 +3,8 @@ import LoginPage from "./login";
 import RegisterPage from "./register";
 import { API } from "@global/api/auth";
 import UnsubscribePage from "./unsubscribe";
+import RequestResetPasswordPage from "./requestResetPassword";
+import ConfirmResetPasswordPage from "./confirmResetPassword";
 
 export const publicRoutes: RouteObject[] = [
   {
@@ -19,6 +21,14 @@ export const publicRoutes: RouteObject[] = [
       {
         path: "unsubscribe",
         element: <UnsubscribePage />,
+      },
+      {
+        path: "request-reset-password",
+        element: <RequestResetPasswordPage />,
+      },
+      {
+        path: "confirm-reset-password",
+        element: <ConfirmResetPasswordPage />,
       },
     ],
   },

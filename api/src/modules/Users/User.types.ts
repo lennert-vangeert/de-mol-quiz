@@ -12,4 +12,6 @@ export type User = Document &
     score: number;
     name: string;
     receiveEmails: boolean;
+    resetPasswordCode: string | null;
+    resetPasswordExpires: Date | null;
   };

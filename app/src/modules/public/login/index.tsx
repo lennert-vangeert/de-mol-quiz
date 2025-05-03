@@ -114,6 +114,9 @@ const LoginPage = () => {
               {...form.getInputProps("password")}
             />
 
+            <Anchor w="100%" ta="right" component={Link} to={tL("/request-reset-password")} size="sm">
+              Wachtwoord vergeten?
+            </Anchor>
             <Group justify="flex-end" mt="md">
               <Anchor component={Link} to={tL("/register")} size="sm">
                 Nog geen account? Registreer hier
