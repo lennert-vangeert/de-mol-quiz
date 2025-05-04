@@ -137,9 +137,82 @@ const closeOldAnswers = async () => {
   }
 };
 
+const givePoints = async () => {
+  const person = "Nimrod"; // expected elimination guess
+  const priceMoney = 20910; // true prize‑money
+  const priceMoneyPoints = 2; // points for closest guess
+  const eliminationPoints = 2; // points for correct elimination guess. At the end of the season when the question is about who's the winner make this 5 points
+
+  // 1. Grab all still-open answer docs
+  const answers = await answerModel.find({ closed: false });
+  if (answers.length === 0) {
+    console.log("No open answers to grade.");
+    return;
+  }
+
+  // 2. Precompute each guess’s distance from priceMoney
+  const priceMoneyData = answers.map((ansDoc) => {
+    const raw = ansDoc.answers[4].userAnswer || "";
+    const numericString = raw.replace(/\D/g, "");
+    const guess = parseInt(numericString, 10) || 0;
+
+    return {
+      ansDoc,
+      elimGuess: ansDoc.answers[3].userAnswer,
+      prizeGuess: guess,
+      diff: Math.abs(guess - priceMoney),
+    };
+  });
+
+  // 3. Find the minimal difference (this will be shared by all ties)
+  const minDiff = Math.min(...priceMoneyData.map((r) => r.diff));
+
+  // 4. Loop and award points + persist changes
+  for (const { ansDoc, elimGuess, diff } of priceMoneyData) {
+    let points = 0;
+    const reasons = [];
+
+    // 4a) 2 points for correct elimination‑guess
+    if (elimGuess === person) {
+      points += eliminationPoints;
+      reasons.push("correct elimination guess");
+    }
+
+    // 4b) 2 points if tied for closest prize‑money guess
+    //     everyone with diff === minDiff gets these 2 points
+    if (diff === minDiff) {
+      points += priceMoneyPoints;
+      reasons.push("closest prize‑money guess");
+    }
+
+    // 4c) Load & update the user’s score
+    const user = await UserModel.findById(ansDoc.userId);
+    if (!user) {
+      console.log(
+        `⚠️  Couldn’t find user ${ansDoc.userId} for answer ${ansDoc._id}`
+      );
+      continue;
+    }
+    user.score = (user.score || 0) + points;
+    await user.save();
+
+    // 4d) Close out the answer
+    ansDoc.closed = true;
+    await ansDoc.save();
+
+    // 4e) Log it with reasons
+    const reasonText = reasons.length
+      ? `(${reasons.join(" & ")})`
+      : "(no points awarded)";
+    console.log(`${user.name} got ${points} points ${reasonText}`);
+  }
+
+  console.log("✅ All open answers have been graded and closed.");
+};
 export {
   createAnswer,
   getAnswerDetail,
   getCurrentUserAndWeekAnswer,
   closeOldAnswers,
+  givePoints,
 };
