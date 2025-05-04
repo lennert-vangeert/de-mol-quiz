@@ -48,6 +48,12 @@ const ScoreBoardPage = () => {
     [scoreBoard]
   );
 
+  // Sort by score descending
+  const sortedEntries = React.useMemo(
+    () => [...visibleEntries].sort((a, b) => b.score - a.score),
+    [visibleEntries]
+  );
+
   // Medal or number logic
   const getMedal = React.useCallback((rank: number) => {
     if (rank === 1) return "🥇";
@@ -64,23 +70,29 @@ const ScoreBoardPage = () => {
     return "1rem";
   }, []);
 
-  // Build rows once unless dependencies change
-  const rows = React.useMemo(
-    () =>
-      visibleEntries.map((entry, idx) => {
-        const rank = idx + 1;
-        return (
-          <Table.Tr key={entry._id} h="2rem">
-            <Table.Td style={{ fontSize: getFontSize(rank) }}>
-              {getMedal(rank)}
-            </Table.Td>
-            <Table.Td>{entry.name}</Table.Td>
-            <Table.Td>{entry.score}</Table.Td>
-          </Table.Tr>
-        );
-      }),
-    [visibleEntries, getMedal, getFontSize]
-  );
+  // Build rows once unless dependencies change, using dense ranking
+  const rows = React.useMemo(() => {
+    let lastScore: number | null = null;
+    let currentRank = 0;
+
+    return sortedEntries.map((entry) => {
+      // Increment rank only when we see a new score
+      if (entry.score !== lastScore) {
+        currentRank += 1;
+        lastScore = entry.score;
+      }
+
+      return (
+        <Table.Tr key={entry._id} h="2rem">
+          <Table.Td style={{ fontSize: getFontSize(currentRank) }}>
+            {getMedal(currentRank)}
+          </Table.Td>
+          <Table.Td>{entry.name}</Table.Td>
+          <Table.Td>{entry.score}</Table.Td>
+        </Table.Tr>
+      );
+    });
+  }, [sortedEntries, getMedal, getFontSize]);
 
   // If API error
   if (error) {
@@ -138,7 +150,7 @@ const ScoreBoardPage = () => {
           )}
 
           {/* Scoreboard data */}
-          {!loading && visibleEntries.length > 0 && (
+          {!loading && sortedEntries.length > 0 && (
             <Table>
               <Table.Thead>
                 <Table.Tr>
@@ -152,7 +164,7 @@ const ScoreBoardPage = () => {
           )}
 
           {/* No scores yet */}
-          {!loading && visibleEntries.length === 0 && (
+          {!loading && sortedEntries.length === 0 && (
             <Text>Er zijn nog geen scores.</Text>
           )}
         </Paper>
