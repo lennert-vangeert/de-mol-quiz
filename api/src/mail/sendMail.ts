@@ -18,16 +18,19 @@ export const sendMail = async (
   try {
     await transporter.sendMail({
       from: `"Lennert van Geert" <${process.env.EMAIL_USER}>`,
-      to,
+      to: process.env.ENVIRONMENT === "prd" ? to : process.env.ADMIN_EMAIL,
       subject,
       html: content,
       text: content,
       replyTo: process.env.EMAIL_USER,
       headers: {
-        'List-Unsubscribe': '<https://de-mol-quiz.vercel.app/unsubscribe>'
+        "List-Unsubscribe": "<https://de-mol-quiz.vercel.app/unsubscribe>",
       },
     });
-    console.log("Email sent successfully to", to);
+    console.log(
+      "Email sent successfully to",
+      process.env.ENVIRONMENT === "prd" ? to : process.env.ADMIN_EMAIL
+    );
   } catch (error) {
     console.error("Error sending email:", error);
   }

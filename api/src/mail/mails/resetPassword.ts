@@ -53,7 +53,11 @@ export const generateResetPasswordEmail = (
       <p>
         We hebben een verzoek ontvangen om je wachtwoord opnieuw in te stellen. Klik op de onderstaande link om je wachtwoord opnieuw in te stellen:
       </p>
-        <a href="https://de-mol-quiz.vercel.app/confirm-reset-password?code=${code}&email=${email}" 
+        <a href="${
+          process.env.ENVIRONMENT === "dev"
+            ? "http://localhost:4000"
+            : "https://de-mol-quiz.vercel.app"
+        }/confirm-reset-password?code=${code}&email=${email}" 
            style="
              display:inline-block;
              padding:0.75rem 1rem;

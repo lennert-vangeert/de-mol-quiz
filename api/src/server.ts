@@ -13,6 +13,7 @@ if (process.env.MONGO_CONNECTION) {
       //start server
       const server = app.listen(port, () => {
         console.log(`Server is running on http://localhost:${port}`);
+        // Check if the mail transporter is ready
         transporter
           .verify()
           .then(() => {
@@ -22,6 +23,7 @@ if (process.env.MONGO_CONNECTION) {
             console.error("Mail transporter error", err);
           });
       });
+      // Handle server shutdown gracefully
       server.on("SIGINT", () => stopServer(server));
       server.on("SIGTERM", () => stopServer(server));
     })
