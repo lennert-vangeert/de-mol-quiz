@@ -31,6 +31,9 @@ export const sendMail = async (
       "Email sent successfully to",
       process.env.ENVIRONMENT === "prd" ? to : process.env.ADMIN_EMAIL
     );
+    if (process.env.ENVIRONMENT === "dev") {
+      console.log("email would've been sent to:", to);
+    }
   } catch (error) {
     console.error("Error sending email:", error);
   }
