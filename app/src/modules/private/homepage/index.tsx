@@ -20,7 +20,7 @@ import {
   sendAnswer,
   checkForAnswer,
 } from "@global/api/requests";
-import { TOKEN, USERID } from "@global/api/auth";
+import { USERID } from "@global/api/auth";
 import classes from "./homepage.module.css";
 
 export type Quiz = {
@@ -35,7 +35,6 @@ export type Quiz = {
     }[];
   }[];
 };
-console.log(TOKEN);
 const Homepage = () => {
   const [quiz, setQuiz] = React.useState<Quiz | null>(null);
   const [isSubmitted, setIsSubmitted] = React.useState(false);

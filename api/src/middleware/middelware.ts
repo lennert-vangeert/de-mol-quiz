@@ -11,7 +11,6 @@ const registerMiddleware = (app: Express) => {
   const allowedOrigins = (
     process.env.CORS_ORIGINS?.split(",") ?? ["http://localhost:4000"]
   ).map((o) => o.trim());
-  console.log(allowedOrigins);
   const isDev = process.env.ENVIRONMENT === "dev";
 
   const corsOptions: CorsOptions = {
