@@ -1,25 +1,70 @@
 import compression from "compression";
-import cors from "cors";
+import cors, { CorsOptions } from "cors";
 import express, { Express } from "express";
 import helmet from "helmet";
 import passport from "passport";
 
 const registerMiddleware = (app: Express) => {
-  // Enable CORS
-  app.use(cors());
+  // —————————————————————————————
+  // Enable CORS only for your front-end origins,
+  // —————————————————————————————
+  const allowedOrigins = (
+    process.env.CORS_ORIGINS?.split(",") ?? ["http://localhost:4000"]
+  ).map((o) => o.trim());
+  console.log(allowedOrigins);
+  const isDev = process.env.ENVIRONMENT === "dev";
 
+  const corsOptions: CorsOptions = {
+    origin: (incomingOrigin, callback) => {
+      // No Origin header (e.g. curl / Postman)
+      if (!incomingOrigin) {
+        if (isDev) {
+          return callback(null, true);
+        } else {
+          return callback(
+            new Error(
+              "CORS policy: no‑origin requests (curl/Postman) only allowed in dev"
+            ),
+            false
+          );
+        }
+      }
+
+      // Browser requests: must match your whitelist
+      if (allowedOrigins.includes(incomingOrigin)) {
+        return callback(null, true);
+      }
+
+      return callback(
+        new Error(`CORS policy: origin ${incomingOrigin} not allowed`),
+        false
+      );
+    },
+    credentials: true, // if you need to send/receive cookies or auth headers
+  };
+
+  app.use(cors(corsOptions));
+
+  // —————————————————————————————
   // JSON parser middleware
+  // —————————————————————————————
   app.use(express.json());
 
-  // Initialize Passport before defining routes!
+  // —————————————————————————————
+  // Passport (for JWT/auth) must come before your routes
+  // —————————————————————————————
   app.use(passport.initialize());
 
+  // —————————————————————————————
   // Helmet for security HTTP headers
+  // —————————————————————————————
   app.use(helmet.noSniff());
   app.use(helmet.hidePoweredBy());
   app.use(helmet.xssFilter());
 
+  // —————————————————————————————
   // Compression middleware
+  // —————————————————————————————
   app.use(compression());
 };
 

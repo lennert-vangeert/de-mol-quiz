@@ -37,6 +37,9 @@ const getCurrentQuiz = async (
 
 const createQuiz = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const { user } = req as AuthRequest;
+    if (user.role !== "ADMIN")
+      return res.status(403).json({ message: "Forbidden" });
     const quiz = new Quiz({ ...req.body });
     const result = await quiz.save();
     res.status(200).json(result);

@@ -1,4 +1,6 @@
 import { NextFunction, Request, Response } from "express";
+import { Types } from "mongoose";
+import { z } from "zod";
 import { AuthRequest } from "../../middleware/auth/authMiddleware";
 import notFoundError from "../../middleware/error/NothingFoundError";
 import Quiz from "../Quiz/Quiz.model";
@@ -7,6 +9,38 @@ import UserModel from "../Users/User.model";
 import { sendMail } from "../../mail/sendMail";
 import { generateNewSubmissionEmail } from "../../mail/mails/newSubmission";
 import { generateConfirmSubmissionEmail } from "../../mail/mails/confirmSubmission";
+
+// ——————————————
+// Zod schema for incoming AnswerBody
+// ——————————————
+const AnswerBodySchema = z
+  .object({
+    quizId: z.string(),
+    userId: z.string(),
+    answers: z
+      .array(
+        z.object({
+          questionId: z.string(),
+          userAnswer: z.string(),
+          isCorrect: z.boolean(),
+          pointsAwarded: z.number().min(0, { message: "Must be ≥ 0" }),
+        })
+      )
+      .min(1, { message: "At least one answer is required" }),
+    totalScore: z.number().min(0, { message: "Must be ≥ 0" }),
+  })
+  .refine(
+    (data) =>
+      data.totalScore ===
+      data.answers.reduce((sum, a) => sum + a.pointsAwarded, 0),
+    {
+      message: "totalScore must equal sum of pointsAwarded",
+      path: ["totalScore"],
+    }
+  );
+// ——————————————
+// Controller: get a single answer detail
+// ——————————————
 const getAnswerDetail = async (
   req: Request,
   res: Response,
@@ -16,9 +50,7 @@ const getAnswerDetail = async (
     const { user } = req as AuthRequest;
     const { id } = req.params;
     const answer = await answerModel
-      .findOne({
-        quizId: id,
-      })
+      .findOne({ quizId: id })
       .lean()
       .populate("quiz");
 
@@ -31,24 +63,34 @@ const getAnswerDetail = async (
   }
 };
 
+// ——————————————
+// Controller: create a new answer with Zod validation
+// ——————————————
 const createAnswer = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
   try {
+    // 1) Validate the incoming body
+    const parseResult = AnswerBodySchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({ errors: parseResult.error.errors });
+    }
+    const body = parseResult.data;
+
+    // 2) Grab authenticated user
     const { user } = req as AuthRequest;
 
-    const quiz = await Quiz.findOne({
-      _id: req.body.quizId,
-    });
-
+    // 3) Ensure the quiz exists
+    const quiz = await Quiz.findOne({ _id: body.quizId });
     if (!quiz) {
       throw new notFoundError("Quiz not found");
     }
-    // check if there is already an answer for this quiz and user
+
+    // 4) Prevent duplicate submission
     const existingAnswer = await answerModel.findOne({
-      quizId: req.body.quizId,
+      quizId: body.quizId,
       userId: user._id,
     });
     if (existingAnswer) {
@@ -56,24 +98,25 @@ const createAnswer = async (
         message: "You have already submitted an answer for this quiz",
       });
     }
+
+    // 5) Persist the new answer
     const answer = new answerModel({
-      ...req.body,
-      userId: user._id,
+      ...body,
+      userId: user._id, // override with auth user
       userName: user.name,
       closed: false,
     });
     const result = await answer.save();
-    try {
-      const dbUser = await UserModel.findById(user._id);
-      if (!dbUser) {
-        throw new notFoundError("User not found");
-      }
-      dbUser.score += req.body.totalScore;
-      await dbUser.save();
-    } catch (e) {
+
+    // 6) Update user's total score
+    const dbUser = await UserModel.findById(user._id);
+    if (!dbUser) {
       throw new notFoundError("User not found");
     }
+    dbUser.score += body.totalScore;
+    await dbUser.save();
 
+    // 7) Respond & fire off emails
     res.json(result);
     sendMail(
       process.env.ADMIN_EMAIL ?? "",
@@ -92,6 +135,9 @@ const createAnswer = async (
   }
 };
 
+// ——————————————
+// Controller: check if current user submitted this week
+// ——————————————
 const getCurrentUserAndWeekAnswer = async (
   req: Request,
   res: Response,
@@ -106,110 +152,87 @@ const getCurrentUserAndWeekAnswer = async (
       userId: user._id,
       quizId: currentWeekQuiz?._id,
     });
-    if (answer) {
-      res.json({
-        hasUserSubmitted: true,
-      });
-    } else {
-      res.json({
-        hasUserSubmitted: false,
-      });
-    }
+    res.json({ hasUserSubmitted: Boolean(answer) });
   } catch (e) {
     next(e);
   }
 };
 
+// ——————————————
+// Utility: close out past answers
+// ——————————————
 const closeOldAnswers = async () => {
   try {
     const currentWeekQuiz = await Quiz.findOne({
       week: process.env.CURRENTWEEK ?? 0,
     });
-    if (!currentWeekQuiz) {
-      return;
-    }
+    if (!currentWeekQuiz) return;
     const answers = await answerModel.find({
       quizId: { $ne: currentWeekQuiz._id },
       closed: false,
     });
-    answers.forEach(async (answer) => {
-      try {
-        console.log(`Closing answer with id ${answer._id}`);
-        answer.closed = true;
-        await answer.save();
-      } catch (e) {
-        console.error(`Failed to close answer with id ${answer._id}:`, e);
-      }
-    });
+    for (const answer of answers) {
+      console.log(`Closing answer with id ${answer._id}`);
+      answer.closed = true;
+      await answer.save();
+    }
   } catch (e) {
     console.error("Failed to close old answers:", e);
   }
 };
 
+// ——————————————
+// Utility: award bonus points & close remaining open answers
+// ——————————————
 const givePoints = async () => {
-  const person = "Nimrod"; // expected elimination guess
-  const priceMoney = 20910; // true prize‑money
-  const priceMoneyPoints = 2; // points for closest guess
-  const eliminationPoints = 2; // points for correct elimination guess. At the end of the season when the question is about who's the winner make this 5 points
+  const person = "Nimrod";
+  const priceMoney = 20910;
+  const priceMoneyPoints = 2;
+  const eliminationPoints = 2;
 
-  // 1. Grab all still-open answer docs
   const answers = await answerModel.find({ closed: false });
   if (answers.length === 0) {
     console.log("No open answers to grade.");
     return;
   }
 
-  // 2. Precompute each guess’s distance from priceMoney
   const priceMoneyData = answers.map((ansDoc) => {
     const raw = ansDoc.answers[4].userAnswer || "";
     const numericString = raw.replace(/\D/g, "");
     const guess = parseInt(numericString, 10) || 0;
-
     return {
       ansDoc,
       elimGuess: ansDoc.answers[3].userAnswer,
-      prizeGuess: guess,
       diff: Math.abs(guess - priceMoney),
     };
   });
 
-  // 3. Find the minimal difference (this will be shared by all ties)
   const minDiff = Math.min(...priceMoneyData.map((r) => r.diff));
 
-  // 4. Loop and award points + persist changes
   for (const { ansDoc, elimGuess, diff } of priceMoneyData) {
     let points = 0;
-    const reasons = [];
+    const reasons: string[] = [];
 
-    // 4a) 2 points for correct elimination‑guess
     if (elimGuess === person) {
       points += eliminationPoints;
       reasons.push("correct elimination guess");
     }
-
-    // 4b) 2 points if tied for closest prize‑money guess
-    //     everyone with diff === minDiff gets these 2 points
     if (diff === minDiff) {
       points += priceMoneyPoints;
       reasons.push("closest prize‑money guess");
     }
 
-    // 4c) Load & update the user’s score
     const user = await UserModel.findById(ansDoc.userId);
     if (!user) {
-      console.log(
-        `⚠️  Couldn’t find user ${ansDoc.userId} for answer ${ansDoc._id}`
-      );
+      console.warn(`User ${ansDoc.userId} not found for answer ${ansDoc._id}`);
       continue;
     }
     user.score = (user.score || 0) + points;
     await user.save();
 
-    // 4d) Close out the answer
     ansDoc.closed = true;
     await ansDoc.save();
 
-    // 4e) Log it with reasons
     const reasonText = reasons.length
       ? `(${reasons.join(" & ")})`
       : "(no points awarded)";
@@ -218,6 +241,7 @@ const givePoints = async () => {
 
   console.log("✅ All open answers have been graded and closed.");
 };
+
 export {
   createAnswer,
   getAnswerDetail,
