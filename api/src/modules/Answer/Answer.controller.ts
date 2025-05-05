@@ -46,7 +46,16 @@ const createAnswer = async (
     if (!quiz) {
       throw new notFoundError("Quiz not found");
     }
-
+    // check if there is already an answer for this quiz and user
+    const existingAnswer = await answerModel.findOne({
+      quizId: req.body.quizId,
+      userId: user._id,
+    });
+    if (existingAnswer) {
+      return res.status(400).json({
+        message: "You have already submitted an answer for this quiz",
+      });
+    }
     const answer = new answerModel({
       ...req.body,
       userId: user._id,
