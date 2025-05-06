@@ -4,8 +4,8 @@
   "description": "",
   "scripts": {
     "dev": "nodemon src/server.ts",
-    "build": "esbuild \"src/**/*.ts\" --bundle --platform=node --format=esm --target=node18 --outdir=dist --minify",
-    "start": "node dist/server.js",
+    "build": "esbuild src/server.ts --bundle --platform=node --format=esm --target=node18 --outfile=dist/index.js --minify",
+    "start": "node dist/index.js",
     "validate:types": "tsc --noemit"
   },
   "author": "",
