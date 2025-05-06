@@ -3,11 +3,13 @@ import cors, { CorsOptions } from "cors";
 import express, { Express } from "express";
 import helmet from "helmet";
 import passport from "passport";
+import healthRoutes from "../modules/Health/Health.routes";
 
 const registerMiddleware = (app: Express) => {
   // —————————————————————————————
   // Enable CORS only for your front-end origins,
   // —————————————————————————————
+  app.use("/", healthRoutes);
   const allowedOrigins = (
     process.env.CORS_ORIGINS?.split(",") ?? ["http://localhost:4000"]
   ).map((o) => o.trim());
@@ -20,12 +22,7 @@ const registerMiddleware = (app: Express) => {
         if (isDev) {
           return callback(null, true);
         } else {
-          return callback(
-            new Error(
-              "CORS policy: no‑origin requests (curl/Postman) only allowed in dev"
-            ),
-            false
-          );
+          return callback(new Error("CORS policy: no‑origin requests"), false);
         }
       }
 
