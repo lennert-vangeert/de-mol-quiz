@@ -6,8 +6,7 @@ const Footer = () => {
       <Divider mb="2rem" />
       <Center px="1rem">
         <Title order={5}>
-          Made with ❤️ by Lennert - © {new Date().getFullYear()} All rights
-          reserved.
+          Made with ❤️ by Lennert - {new Date().getFullYear()}
         </Title>
       </Center>
     </Box>
