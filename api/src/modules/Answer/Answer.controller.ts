@@ -185,10 +185,10 @@ const closeOldAnswers = async () => {
 // Utility: award bonus points & close remaining open answers
 // ——————————————
 const givePoints = async () => {
-  const person = "Nimrod";
-  const priceMoney = 20910;
+  const person = "Alexy";
+  const priceMoney = 27910;
   const priceMoneyPoints = 2;
-  const eliminationPoints = 2;
+  const eliminationPoints = 5; // change this to 5 for final quiz with winner
 
   const answers = await answerModel.find({ closed: false });
   if (answers.length === 0) {
@@ -241,7 +241,49 @@ const givePoints = async () => {
 
   console.log("✅ All open answers have been graded and closed.");
 };
+// givePoints()
 
+export const checkMoleAnswers = async () => {
+  const mole = "sarah"; // the true mole
+  const points = 3; // points per correct guess
+
+  // 1. Fetch all answers
+  const answers = await answerModel.find({});
+  if (answers.length === 0) {
+    console.log("No answers found.");
+    return;
+  }
+
+  // 2. Loop through every answer doc
+  for (const ansDoc of answers) {
+    // Safely grab the mole-guess (6th question in the array)
+    const moleGuess = ansDoc.answers[5]?.userAnswer.toLowerCase();
+    // 3. Check correctness
+    if (moleGuess === mole) {
+      // 3a) Load & update the user’s score
+      const user = await UserModel.findById(ansDoc.userId);
+      if (!user) {
+        console.log(
+          `⚠️  Couldn’t find user ${ansDoc.userId} for answer ${ansDoc._id}`
+        );
+        continue;
+      }
+      user.score = (user.score || 0) + points;
+      await user.save();
+
+      // 3b) (Optional) mark that we’ve processed their mole-guess
+      //     — uncomment if you want to prevent double-scoring
+      // ansDoc.moleChecked = true;
+      // await ansDoc.save();
+
+      // 3c) Log it
+      console.log(`${user.name} got ${points} points (correct mole guess)`);
+    }
+  }
+
+  console.log("✅  All mole-guesses have been checked.");
+};
+// checkMoleAnswers();
 export {
   createAnswer,
   getAnswerDetail,

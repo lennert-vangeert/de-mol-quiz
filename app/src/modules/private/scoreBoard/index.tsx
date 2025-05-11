@@ -10,6 +10,7 @@ import {
 import * as React from "react";
 import Head from "@global/head";
 import { getScoreBoard, scoreBoardOutput } from "@global/api/requests";
+import Confetti from "react-confetti";
 
 // Pull constant arrays/functions out of the component
 const skeletonSizes = [40, 30, 25, 20, 20] as const;
@@ -18,6 +19,9 @@ const ScoreBoardPage = () => {
   const [scoreBoard, setScoreBoard] = React.useState<scoreBoardOutput[]>([]);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState<string | null>(null);
+
+  // Toggle to show winner celebration
+  const showWinner = true;
 
   // Fetch logic memoized
   const fetchScoreBoard = React.useCallback(async () => {
@@ -76,7 +80,6 @@ const ScoreBoardPage = () => {
     let currentRank = 0;
 
     return sortedEntries.map((entry) => {
-      // Increment rank only when we see a new score
       if (entry.score !== lastScore) {
         currentRank += 1;
         lastScore = entry.score;
@@ -94,13 +97,25 @@ const ScoreBoardPage = () => {
     });
   }, [sortedEntries, getMedal, getFontSize]);
 
+  // Identify winner for celebration
+  const winner = sortedEntries[0];
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+
   // If API error
   if (error) {
     return (
       <>
         <Head title="Scorebord" description="Bekijk de hoogste scores" />
         <Center mih="30rem" p="2rem">
-          <Paper mih="60rem" shadow="xl" withBorder p="md" w="100%" maw="37.5rem">
+          <Paper
+            mih="60rem"
+            shadow="xl"
+            withBorder
+            p="md"
+            w="100%"
+            maw="37.5rem"
+          >
             <Text>{error}</Text>
             <Anchor component="button" onClick={() => window.location.reload()}>
               Refresh
@@ -111,22 +126,24 @@ const ScoreBoardPage = () => {
     );
   }
 
-  // Main render
   return (
     <>
-      <Head title="Scorebord" description="Bekijk de hoogste scores" SEODisabled />
+      <Head
+        title="Scorebord"
+        description="Bekijk de hoogste scores"
+        SEODisabled
+      />
       <Center py="2rem" mih="75vh">
         <Paper mih="30rem" shadow="xl" withBorder p="md" w="100%" maw="37.5rem">
           <Title order={2} mb="md">
             Scorebord
           </Title>
 
-          {/* Loading skeleton */}
           {loading && (
             <Table>
               <Table.Thead>
                 <Table.Tr h="2rem">
-                  <Table.Th /> {/* empty header cell for rank */}
+                  <Table.Th />
                   <Table.Th>Naam</Table.Th>
                   <Table.Th>Score</Table.Th>
                 </Table.Tr>
@@ -149,12 +166,11 @@ const ScoreBoardPage = () => {
             </Table>
           )}
 
-          {/* Scoreboard data */}
           {!loading && sortedEntries.length > 0 && (
             <Table>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th /> {/* empty header for rank */}
+                  <Table.Th />
                   <Table.Th>Naam</Table.Th>
                   <Table.Th>Score</Table.Th>
                 </Table.Tr>
@@ -163,9 +179,24 @@ const ScoreBoardPage = () => {
             </Table>
           )}
 
-          {/* No scores yet */}
           {!loading && sortedEntries.length === 0 && (
             <Text>Er zijn nog geen scores.</Text>
+          )}
+
+          {/* Winner celebration */}
+          {showWinner && !loading && winner && (
+            <Center mt="2rem">
+              <Confetti
+                style={{ position: "absolute", top: 0, left: 0, zIndex: 1 }}
+                width={width}
+                height={height}
+                recycle
+              />
+              <Text size="xl" fw={700} ta="center">
+                Proficiat {winner.name}! Jij bent de winnaar met {winner.score}{" "}
+                punten! 🎉
+              </Text>
+            </Center>
           )}
         </Paper>
       </Center>
