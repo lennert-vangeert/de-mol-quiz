@@ -18,7 +18,7 @@ export const sendMail = async (
   try {
     await transporter.sendMail({
       from: `"Lennert van Geert" <${process.env.EMAIL_USER}>`,
-      to: process.env.ENVIRONMENT === "prd" ? to : process.env.ADMIN_EMAIL,
+      to: to,
       subject,
       html: content,
       text: content,
@@ -27,13 +27,7 @@ export const sendMail = async (
         "List-Unsubscribe": "<https://de-mol-quiz.vercel.app/unsubscribe>",
       },
     });
-    console.log(
-      "Email sent successfully to",
-      process.env.ENVIRONMENT === "prd" ? to : process.env.ADMIN_EMAIL
-    );
-    if (process.env.ENVIRONMENT === "dev") {
-      console.log("email would've been sent to:", to);
-    }
+    console.log("Email sent successfully to", to);
   } catch (error) {
     console.error("Error sending email:", error);
   }

@@ -5,6 +5,7 @@ import { AuthRequest } from "../../middleware/auth/authMiddleware";
 import { sendMail } from "../../mail/sendMail";
 import { generateNewQuizEmail } from "../../mail/mails/newQuiz";
 import { generateResetPasswordEmail } from "../../mail/mails/resetPassword";
+import { generateWinnerEmail } from "../../mail/mails/celebration";
 
 // ————————————————————————
 // Zod schemas for all request bodies
@@ -131,6 +132,25 @@ const sendNewQuizEmailToAllUsers = async () => {
       user.email,
       `De nieuwe molquiz is er!`,
       generateNewQuizEmail("7", user.email)
+    );
+  });
+};
+
+// ————————————————————————
+// POST /send-winner-email
+// (no input to validate)
+// ————————————————————————
+
+export const sendWinnerEmail = async () => {
+  console.debug("sending winner email to all users");
+  const users = await User.find({ receiveEmails: true });
+  // find user with highest score
+  const winner = await User.findOne({ score: { $gt: 0 } }).sort({ score: -1 });
+  users.forEach((user) => {
+    sendMail(
+      user.email,
+      `De winnaar is bekend!`,
+      generateWinnerEmail(winner?.name || "Laura Volkaert", user.email)
     );
   });
 };
