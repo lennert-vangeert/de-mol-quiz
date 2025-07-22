@@ -5,6 +5,7 @@ import { API } from "@global/api/auth";
 import UnsubscribePage from "./unsubscribe";
 import RequestResetPasswordPage from "./requestResetPassword";
 import ConfirmResetPasswordPage from "./confirmResetPassword";
+import InactivePage from "./inactive";
 
 export const publicRoutes: RouteObject[] = [
   {
@@ -30,6 +31,10 @@ export const publicRoutes: RouteObject[] = [
         path: "confirm-reset-password",
         element: <ConfirmResetPasswordPage />,
       },
+      {
+        path: "inactive",
+        element: <InactivePage />,
+      }
     ],
   },
 ];

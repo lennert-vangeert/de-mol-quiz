@@ -1,5 +1,6 @@
 // PrivateRoute.tsx
 import { refreshToken, TOKEN } from "@global/api/auth";
+import { useTranslate } from "@global/localization";
 import React from "react";
 
 type PrivateRouteProps = {
@@ -8,11 +9,17 @@ type PrivateRouteProps = {
 };
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
+  const { tL } = useTranslate();
+  const isActive = import.meta.env.VITE_ISACTIVE === "true";
   if (TOKEN) {
     refreshToken();
     return children;
   }
-  window.location.href = "/login";
+  if (!isActive) {
+    window.location.href = tL("/inactive");
+  } else {
+    window.location.href = tL("/login");
+  }
 };
 
 export default PrivateRoute;

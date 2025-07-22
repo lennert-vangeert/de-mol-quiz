@@ -7,7 +7,7 @@ import healthRoutes from "../modules/Health/Health.routes";
 
 const registerMiddleware = (app: Express) => {
   // —————————————————————————————
-  // Enable CORS only for your front-end origins,
+  // Enable CORS only for front-end origins,
   // —————————————————————————————
   app.use("/", healthRoutes);
   const allowedOrigins = (
@@ -41,6 +41,19 @@ const registerMiddleware = (app: Express) => {
 
   app.use(cors(corsOptions));
 
+  // —————————————————————————————
+  // Disable all traffic to the API if not active
+  // —————————————————————————————
+  const isActive = process.env.ISACTIVE === "true";
+
+  if (!isActive) {
+    app.use((req, res, next) => {
+      res.status(503).json({
+        message: "The API is currently inactive.",
+      });
+    });
+    return;
+  }
   // —————————————————————————————
   // JSON parser middleware
   // —————————————————————————————

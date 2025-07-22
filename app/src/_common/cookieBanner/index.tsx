@@ -29,9 +29,9 @@ const CookieBanner = ({ opened, close }: CookieBannerProps) => {
     <Dialog withBorder py="1rem" opened={opened} onClose={close} withCloseButton={false}>
       <Title>Cookies</Title>
       <Text>We gebruiken cookies om jouw ervaring te verbeteren.</Text>
-      <Group justify="space-around" mt="2rem">
-        <Button onClick={() => acceptAnalyticsCookies()}>Accepteren</Button>
-        <Button color="red" onClick={() => rejectAnalyticsCookies()}>
+      <Group justify="space-around" wrap="nowrap" mt="2rem">
+        <Button fullWidth onClick={() => acceptAnalyticsCookies()}>Accepteren</Button>
+        <Button fullWidth color="red" onClick={() => rejectAnalyticsCookies()}>
           Weigeren
         </Button>
       </Group>
