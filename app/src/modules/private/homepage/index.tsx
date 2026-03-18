@@ -97,7 +97,7 @@ const Homepage = () => {
               };
             } else {
               // open question
-              if ((q).correctAnswer) {
+              if ((q as any).correctAnswer) {
                 answerKeyRef.current[compositeKey] = (q as any).correctAnswer; // ← changed
               }
               const { correctAnswer, ...rest } = q as any;
