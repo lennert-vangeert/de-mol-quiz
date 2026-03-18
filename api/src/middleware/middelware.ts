@@ -4,6 +4,7 @@ import express, { Express } from "express";
 import helmet from "helmet";
 import passport from "passport";
 import healthRoutes from "../modules/Health/Health.routes";
+import { dbState } from "../db/dbState";
 
 const registerMiddleware = (app: Express) => {
   // —————————————————————————————
@@ -54,6 +55,16 @@ const registerMiddleware = (app: Express) => {
     });
     return;
   }
+  // —————————————————————————————
+  // Reject all requests when DB is unavailable
+  // —————————————————————————————
+  app.use((_, res, next) => {
+    if (!dbState.isConnected) {
+      return res.status(503).json({ message: "Database unavailable, retrying..." });
+    }
+    next();
+  });
+
   // —————————————————————————————
   // JSON parser middleware
   // —————————————————————————————
