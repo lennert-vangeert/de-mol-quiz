@@ -10,6 +10,9 @@ const port: number = parseInt(process.env.PORT ?? "9300");
 if (!process.env.MONGO_CONNECTION) {
   throw new Error("MongoDB connection string not found");
 }
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is not set");
+}
 
 let retryInterval: ReturnType<typeof setInterval> | null = null;
 

@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 import User from "./User.model";
@@ -16,7 +17,7 @@ const LoginSchema = z.object({
 
 const RegisterSchema = z.object({
   email: z.string().email({ message: "Must be a valid email address" }),
-  password: z.string().min(1, { message: "Password is required" }),
+  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
   name: z.string().min(1, { message: "Name is required" }),
 });
 
@@ -33,7 +34,7 @@ const ConfirmResetPasswordSchema = z.object({
   code: z
     .string()
     .regex(/^\d{6}$/, { message: "Code must be a 6‑digit string" }),
-  password: z.string().min(1, { message: "Password is required" }),
+  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
 });
 
 const CheckResetPasswordCredentialsSchema = z.object({
@@ -193,13 +194,11 @@ const unsubscribeFromEmails = async (
 
   try {
     console.debug("unsubscribing user from emails");
-    const user = await User.findOne({ email: parsed.data.email });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    const { user: authUser } = req as AuthRequest;
+    if (authUser.email !== parsed.data.email) {
+      return res.status(403).json({ message: "Forbidden" });
     }
-
-    user.receiveEmails = false;
-    await user.save();
+    await User.findByIdAndUpdate(authUser._id, { receiveEmails: false });
     res.status(200).json({ message: "Unsubscribed from emails" });
   } catch (error) {
     next(error);
@@ -229,7 +228,7 @@ const requestResetPassword = async (
       return res.status(200).json({ message: "Reset password code sent" });
     }
 
-    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const resetCode = crypto.randomInt(100000, 1000000).toString();
     user.resetPasswordCode = resetCode;
     user.resetPasswordExpires = new Date(Date.now() + 300000); // 5 min
     await user.save();

@@ -1,6 +1,12 @@
 import { NextFunction, Request, Response } from "express";
+import { z } from "zod";
 import ConfigModel from "./Config.model";
 import { AuthRequest } from "../../middleware/auth/authMiddleware";
+
+const ConfigBodySchema = z.object({
+  week: z.number().int().min(0).optional(),
+  season: z.number().int().min(0).optional(),
+});
 
 const getConfig = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -23,7 +29,11 @@ const updateConfig = async (
     const { user } = req as AuthRequest;
     if (user.role !== "ADMIN")
       return res.status(403).json({ message: "Forbidden" });
-    const updated = await ConfigModel.findOneAndUpdate({}, req.body, {
+    const parsed = ConfigBodySchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ errors: parsed.error.errors });
+    }
+    const updated = await ConfigModel.findOneAndUpdate({}, parsed.data, {
       upsert: true,
       new: true,
     });

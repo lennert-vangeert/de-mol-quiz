@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import { Types } from "mongoose";
 import { z } from "zod";
 import { AuthRequest } from "../../middleware/auth/authMiddleware";
 import notFoundError from "../../middleware/error/NothingFoundError";
 import Quiz from "../Quiz/Quiz.model";
+import ConfigModel from "../Config/Config.model";
 import answerModel from "./Answer.model";
 import UserModel from "../Users/User.model";
 import { sendMail } from "../../mail/sendMail";
@@ -11,33 +11,25 @@ import { generateNewSubmissionEmail } from "../../mail/mails/newSubmission";
 import { generateConfirmSubmissionEmail } from "../../mail/mails/confirmSubmission";
 
 // ——————————————
-// Zod schema for incoming AnswerBody
+// Helper: get the active week from Config DB
 // ——————————————
-const AnswerBodySchema = z
-  .object({
-    quizId: z.string(),
-    userId: z.string(),
-    answers: z
-      .array(
-        z.object({
-          questionId: z.string(),
-          userAnswer: z.string(),
-          isCorrect: z.boolean(),
-          pointsAwarded: z.number().min(0, { message: "Must be ≥ 0" }),
-        })
-      )
-      .min(1, { message: "At least one answer is required" }),
-    totalScore: z.number().min(0, { message: "Must be ≥ 0" }),
-  })
-  .refine(
-    (data) =>
-      data.totalScore ===
-      data.answers.reduce((sum, a) => sum + a.pointsAwarded, 0),
-    {
-      message: "totalScore must equal sum of pointsAwarded",
-      path: ["totalScore"],
-    }
-  );
+const getActiveWeek = async (): Promise<number> => {
+  const config = await ConfigModel.findOne({});
+  return config?.week ?? 0;
+};
+
+// ——————————————
+// Zod schema for incoming AnswerBody
+// isCorrect / pointsAwarded / totalScore are NOT accepted from client — computed server-side
+// ——————————————
+const AnswerBodySchema = z.object({
+  quizId: z.string(),
+  userId: z.string(),
+  answers: z
+    .array(z.object({ questionId: z.string(), userAnswer: z.string() }))
+    .min(1, { message: "At least one answer is required" }),
+});
+
 // ——————————————
 // Controller: get a single answer detail
 // ——————————————
@@ -50,7 +42,7 @@ const getAnswerDetail = async (
     const { user } = req as AuthRequest;
     const { id } = req.params;
     const answer = await answerModel
-      .findOne({ quizId: id })
+      .findOne({ quizId: id, userId: user._id })
       .lean()
       .populate("quiz");
 
@@ -64,7 +56,7 @@ const getAnswerDetail = async (
 };
 
 // ——————————————
-// Controller: create a new answer with Zod validation
+// Controller: create a new answer with server-side scoring
 // ——————————————
 const createAnswer = async (
   req: Request,
@@ -99,24 +91,47 @@ const createAnswer = async (
       });
     }
 
-    // 5) Persist the new answer
+    // 5) Compute scoring server-side
+    const scoredAnswers = body.answers.map((submitted) => {
+      const question = quiz.questions.find(
+        (q) => q.questionId === submitted.questionId
+      );
+      let isCorrect = false;
+      let pointsAwarded = 0;
+      if (question?.questionType === "multiple-choice") {
+        const matched = question.options?.find(
+          (o) => o.optionText === submitted.userAnswer
+        );
+        isCorrect = matched?.isCorrect === "true";
+        pointsAwarded = isCorrect ? 1 : 0;
+      }
+      return { ...submitted, isCorrect, pointsAwarded };
+    });
+    const totalScore = scoredAnswers.reduce(
+      (sum, a) => sum + a.pointsAwarded,
+      0
+    );
+
+    // 6) Persist the new answer
     const answer = new answerModel({
-      ...body,
-      userId: user._id, // override with auth user
+      quizId: body.quizId,
+      userId: user._id,
       userName: user.name,
+      answers: scoredAnswers,
+      totalScore,
       closed: false,
     });
     const result = await answer.save();
 
-    // 6) Update user's total score
+    // 7) Update user's total score
     const dbUser = await UserModel.findById(user._id);
     if (!dbUser) {
       throw new notFoundError("User not found");
     }
-    dbUser.score += body.totalScore;
+    dbUser.score += totalScore;
     await dbUser.save();
 
-    // 7) Respond & fire off emails
+    // 8) Respond & fire off emails
     res.json(result);
     sendMail(
       process.env.ADMIN_EMAIL ?? "",
@@ -145,9 +160,8 @@ const getCurrentUserAndWeekAnswer = async (
 ) => {
   try {
     const { user } = req as AuthRequest;
-    const currentWeekQuiz = await Quiz.findOne({
-      week: process.env.CURRENTWEEK ?? 0,
-    });
+    const currentWeek = await getActiveWeek();
+    const currentWeekQuiz = await Quiz.findOne({ week: currentWeek });
     const answer = await answerModel.findOne({
       userId: user._id,
       quizId: currentWeekQuiz?._id,
@@ -163,9 +177,8 @@ const getCurrentUserAndWeekAnswer = async (
 // ——————————————
 const closeOldAnswers = async () => {
   try {
-    const currentWeekQuiz = await Quiz.findOne({
-      week: process.env.CURRENTWEEK ?? 0,
-    });
+    const currentWeek = await getActiveWeek();
+    const currentWeekQuiz = await Quiz.findOne({ week: currentWeek });
     if (!currentWeekQuiz) return;
     const answers = await answerModel.find({
       quizId: { $ne: currentWeekQuiz._id },
@@ -188,7 +201,7 @@ const givePoints = async () => {
   const person = "Alexy";
   const priceMoney = 27910;
   const priceMoneyPoints = 2;
-  const eliminationPoints = 5; // change this to 5 for final quiz with winner
+  const eliminationPoints = 5;
 
   const answers = await answerModel.find({ closed: false });
   if (answers.length === 0) {
@@ -244,39 +257,27 @@ const givePoints = async () => {
 // givePoints()
 
 export const checkMoleAnswers = async () => {
-  const mole = "sarah"; // the true mole
-  const points = 3; // points per correct guess
+  const mole = "sarah";
+  const points = 3;
 
-  // 1. Fetch all answers
   const answers = await answerModel.find({});
   if (answers.length === 0) {
     console.log("No answers found.");
     return;
   }
 
-  // 2. Loop through every answer doc
   for (const ansDoc of answers) {
-    // Safely grab the mole-guess (6th question in the array)
     const moleGuess = ansDoc.answers[5]?.userAnswer.toLowerCase();
-    // 3. Check correctness
     if (moleGuess === mole) {
-      // 3a) Load & update the user’s score
       const user = await UserModel.findById(ansDoc.userId);
       if (!user) {
         console.log(
-          `⚠️  Couldn’t find user ${ansDoc.userId} for answer ${ansDoc._id}`
+          `⚠️  Couldn't find user ${ansDoc.userId} for answer ${ansDoc._id}`
         );
         continue;
       }
       user.score = (user.score || 0) + points;
       await user.save();
-
-      // 3b) (Optional) mark that we’ve processed their mole-guess
-      //     — uncomment if you want to prevent double-scoring
-      // ansDoc.moleChecked = true;
-      // await ansDoc.save();
-
-      // 3c) Log it
       console.log(`${user.name} got ${points} points (correct mole guess)`);
     }
   }
@@ -284,6 +285,7 @@ export const checkMoleAnswers = async () => {
   console.log("✅  All mole-guesses have been checked.");
 };
 // checkMoleAnswers();
+
 export {
   createAnswer,
   getAnswerDetail,

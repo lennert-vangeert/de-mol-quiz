@@ -68,7 +68,7 @@ const registerMiddleware = (app: Express) => {
   // —————————————————————————————
   // JSON parser middleware
   // —————————————————————————————
-  app.use(express.json());
+  app.use(express.json({ limit: "50kb" }));
 
   // —————————————————————————————
   // Passport (for JWT/auth) must come before your routes
@@ -78,9 +78,7 @@ const registerMiddleware = (app: Express) => {
   // —————————————————————————————
   // Helmet for security HTTP headers
   // —————————————————————————————
-  app.use(helmet.noSniff());
-  app.use(helmet.hidePoweredBy());
-  app.use(helmet.xssFilter());
+  app.use(helmet());
 
   // —————————————————————————————
   // Compression middleware
