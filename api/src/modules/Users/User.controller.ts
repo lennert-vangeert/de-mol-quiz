@@ -85,10 +85,13 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    const type = email.endsWith("@codifly.be") ? "corporate" : "private";
+
     const newUser = new User({
       email,
       password,
       role: "REGULAR",
+      type,
       score: 0,
       name,
     });
@@ -110,7 +113,8 @@ const getScoreBoard = async (
 ) => {
   console.debug("getting scoreboard");
   try {
-    const scoreBoard = await User.find()
+    const { user } = req as AuthRequest;
+    const scoreBoard = await User.find({ type: user.type, role: "REGULAR" })
       .sort({ score: -1 })
       .limit(10)
       .select("name score");
@@ -168,10 +172,9 @@ const getCurrentUser = (req: Request, res: Response, next: NextFunction) => {
 // POST /refresh-token
 // ————————————————————————
 const refreshToken = (req: Request, res: Response, next: NextFunction) => {
-  console.debug("refreshing token");
   const { user } = req as AuthRequest;
   const newToken = user.generateToken();
-  res.json({ token: newToken, role: [user.role], userId: user._id });
+  res.json({ token: newToken, role: user.role, userId: user._id });
 };
 
 // ————————————————————————
@@ -317,10 +320,32 @@ const checkResetPasswordCredentials = async (
   }
 };
 
+// ————————————————————————
+// GET /scoreBoard/all (ADMIN only)
+// ————————————————————————
+const getFullScoreBoard = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { user } = req as AuthRequest;
+    if (user.role !== "ADMIN")
+      return res.status(403).json({ message: "Forbidden" });
+    const scoreBoard = await User.find({ role: "REGULAR" })
+      .sort({ score: -1 })
+      .select("name score type");
+    res.json(scoreBoard);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export {
   login,
   register,
   getScoreBoard,
+  getFullScoreBoard,
   sendNewQuizEmailToAllUsers,
   getCurrentUser,
   refreshToken,

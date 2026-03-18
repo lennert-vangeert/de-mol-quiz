@@ -3,6 +3,7 @@ import Homepage from "../private/homepage";
 import PageWrapper from "../sections/pageWrapper";
 import PrivateRoute from "@common/privateRouteComponent";
 import ScoreBoardPage from "./scoreBoard";
+import AdminPage from "./admin";
 
 export const privateRoutes: RouteObject[] = [
   {
@@ -12,7 +13,7 @@ export const privateRoutes: RouteObject[] = [
       {
         index: true,
         element: (
-          <PrivateRoute allowedRoles={["REGULAR"]}>
+          <PrivateRoute allowedRoles={["REGULAR", "ADMIN"]}>
             <Homepage />
           </PrivateRoute>
         ),
@@ -20,8 +21,16 @@ export const privateRoutes: RouteObject[] = [
       {
         path: "scoreboard",
         element: (
-          <PrivateRoute allowedRoles={["REGULAR"]}>
+          <PrivateRoute allowedRoles={["REGULAR", "ADMIN"]}>
             <ScoreBoardPage />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "admin",
+        element: (
+          <PrivateRoute allowedRoles={["ADMIN"]}>
+            <AdminPage />
           </PrivateRoute>
         ),
       },

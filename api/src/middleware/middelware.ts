@@ -10,7 +10,6 @@ const registerMiddleware = (app: Express) => {
   // —————————————————————————————
   // Enable CORS only for front-end origins,
   // —————————————————————————————
-  app.use("/", healthRoutes);
   const allowedOrigins = (
     process.env.CORS_ORIGINS?.split(",") ?? ["http://localhost:4000"]
   ).map((o) => o.trim());
@@ -41,6 +40,7 @@ const registerMiddleware = (app: Express) => {
   };
 
   app.use(cors(corsOptions));
+  app.use("/", healthRoutes);
 
   // —————————————————————————————
   // Disable all traffic to the API if not active
@@ -48,7 +48,7 @@ const registerMiddleware = (app: Express) => {
   const isActive = process.env.ISACTIVE === "true";
 
   if (!isActive) {
-    app.use((req, res, next) => {
+    app.use((_, res, __) => {
       res.status(503).json({
         message: "The API is currently inactive.",
       });

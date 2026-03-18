@@ -1,2 +1,0 @@
-- Add register link on login page
-- fix quiz not showing sometimes when logging in

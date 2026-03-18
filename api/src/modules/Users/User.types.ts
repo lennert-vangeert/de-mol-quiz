@@ -9,6 +9,7 @@ export type User = Document &
     email: string;
     password: string;
     role: "ADMIN" | "REGULAR";
+    type: "private" | "corporate";
     score: number;
     name: string;
     receiveEmails: boolean;

@@ -97,7 +97,7 @@ const Homepage = () => {
               };
             } else {
               // open question
-              if ((q as any).correctAnswer) {
+              if ((q).correctAnswer) {
                 answerKeyRef.current[compositeKey] = (q as any).correctAnswer; // ← changed
               }
               const { correctAnswer, ...rest } = q as any;
@@ -167,18 +167,23 @@ const Homepage = () => {
       });
   });
 
-  if (loading || error) {
+  if (loading) {
     return (
       <Center mih="80vh" p="2rem" className={classes.background}>
-        {loading && <Loader />}
-        {error && (
-          <Paper shadow="xl" withBorder p="md" style={{ maxWidth: 600 }}>
-            <Text>{error}</Text>
-            <Anchor component="button" onClick={() => window.location.reload()}>
-              Refresh
-            </Anchor>
-          </Paper>
-        )}
+        <Loader />
+      </Center>
+    );
+  }
+
+  if (error) {
+    return (
+      <Center mih="80vh" p="2rem" className={classes.background}>
+        <Paper shadow="xl" withBorder p="md" style={{ maxWidth: 600 }}>
+          <Text>{error}</Text>
+          <Anchor component="button" onClick={() => window.location.reload()}>
+            Refresh
+          </Anchor>
+        </Paper>
       </Center>
     );
   }

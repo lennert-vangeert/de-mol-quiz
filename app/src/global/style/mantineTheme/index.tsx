@@ -3,6 +3,7 @@ import type {
   MantineThemeOverride,
 } from "@mantine/core";
 import { MantineProvider } from "@mantine/core";
+import { ModalsProvider } from "@mantine/modals";
 import type * as React from "react";
 
 // #083A59
@@ -224,5 +225,7 @@ type MantineStylesProps = {
 };
 
 export const MantineStyles = ({ children }: MantineStylesProps) => (
-  <MantineProvider theme={theme}>{children}</MantineProvider>
+  <MantineProvider theme={theme}>
+    <ModalsProvider>{children}</ModalsProvider>
+  </MantineProvider>
 );
