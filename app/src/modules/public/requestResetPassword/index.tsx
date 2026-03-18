@@ -46,8 +46,12 @@ const RequestResetPasswordPage = () => {
             setGeneralError("Er ging iets fout");
           }
         })
-        .catch(() => {
-          setGeneralError("Er ging iets fout");
+        .catch((err) => {
+          const serverMsg = err?.response?.data?.message;
+          const status = err?.response?.status;
+          setGeneralError(
+            status === 429 && serverMsg ? serverMsg : "Er ging iets fout"
+          );
         })
         .finally(() => {
           setLoading(false);

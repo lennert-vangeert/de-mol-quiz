@@ -4,12 +4,12 @@ import express, { Express } from "express";
 import helmet from "helmet";
 import passport from "passport";
 import healthRoutes from "../modules/Health/Health.routes";
+import { dbState } from "../db/dbState";
 
 const registerMiddleware = (app: Express) => {
   // —————————————————————————————
   // Enable CORS only for front-end origins,
   // —————————————————————————————
-  app.use("/", healthRoutes);
   const allowedOrigins = (
     process.env.CORS_ORIGINS?.split(",") ?? ["http://localhost:4000"]
   ).map((o) => o.trim());
@@ -40,6 +40,7 @@ const registerMiddleware = (app: Express) => {
   };
 
   app.use(cors(corsOptions));
+  app.use("/", healthRoutes);
 
   // —————————————————————————————
   // Disable all traffic to the API if not active
@@ -47,7 +48,7 @@ const registerMiddleware = (app: Express) => {
   const isActive = process.env.ISACTIVE === "true";
 
   if (!isActive) {
-    app.use((req, res, next) => {
+    app.use((_, res, __) => {
       res.status(503).json({
         message: "The API is currently inactive.",
       });
@@ -55,9 +56,19 @@ const registerMiddleware = (app: Express) => {
     return;
   }
   // —————————————————————————————
+  // Reject all requests when DB is unavailable
+  // —————————————————————————————
+  app.use((_, res, next) => {
+    if (!dbState.isConnected) {
+      return res.status(503).json({ message: "Database unavailable, retrying..." });
+    }
+    next();
+  });
+
+  // —————————————————————————————
   // JSON parser middleware
   // —————————————————————————————
-  app.use(express.json());
+  app.use(express.json({ limit: "50kb" }));
 
   // —————————————————————————————
   // Passport (for JWT/auth) must come before your routes
@@ -67,9 +78,7 @@ const registerMiddleware = (app: Express) => {
   // —————————————————————————————
   // Helmet for security HTTP headers
   // —————————————————————————————
-  app.use(helmet.noSniff());
-  app.use(helmet.hidePoweredBy());
-  app.use(helmet.xssFilter());
+  app.use(helmet());
 
   // —————————————————————————————
   // Compression middleware

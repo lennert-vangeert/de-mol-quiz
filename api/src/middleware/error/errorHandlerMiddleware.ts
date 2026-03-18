@@ -4,9 +4,9 @@ import AppError from "./ApplicationError";
 
 export const errorHandler = (
   err: Error,
-  req: Request,
+  _req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   // Mongoose validation error
   if (err instanceof Error.ValidationError) {
@@ -24,8 +24,9 @@ export const errorHandler = (
     });
   }
 
-  // Unknown errors
+  // Unknown errors — only expose raw message in dev
+  const isDev = process.env.ENVIRONMENT === "dev";
   res.status(500).json({
-    message: err.message ?? "Internal server error",
+    message: isDev ? (err.message ?? "Internal server error") : "Internal server error",
   });
 };

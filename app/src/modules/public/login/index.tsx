@@ -56,8 +56,14 @@ const LoginPage = () => {
             window.location.href = tL("/");
           }
         })
-        .catch(() => {
-          setGeneralError("Ongeldige email of wachtwoord");
+        .catch((err) => {
+          const serverMsg = err?.response?.data?.message;
+          const status = err?.response?.status;
+          setGeneralError(
+            status === 429 && serverMsg
+              ? serverMsg
+              : "Ongeldige email of wachtwoord"
+          );
         })
         .finally(() => {
           setLoading(false);

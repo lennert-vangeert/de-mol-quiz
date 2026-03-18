@@ -1,17 +1,12 @@
 import { API, TOKEN } from "./auth";
 
 export const getCurrentQuiz = async () => {
-  try {
-    const response = await API.get("quiz", {
-      headers: {
-        authorization: `Bearer ${TOKEN}`,
-      },
-    });
-    return response;
-  } catch (error) {
-    throw error;
-  }
-};
+  return await API.get("quiz", {
+    headers: {
+      authorization: `Bearer ${TOKEN}`,
+    },
+  });
+}
 
 type answerInput = {
   quizId: string | undefined;
@@ -26,33 +21,63 @@ type answerInput = {
 };
 
 export const sendAnswer = async (answer: answerInput) => {
-  try {
-    await API.post("answers", answer, {
-      headers: {
-        authorization: `Bearer ${TOKEN}`,
-      },
-    });
-  } catch (error) {
-    throw error;
-  }
+  await API.post("answers", answer, {
+    headers: {
+      authorization: `Bearer ${TOKEN}`,
+    },
+  });
 };
 
 export const checkForAnswer = async (): Promise<{
   hasUserSubmitted: boolean;
 }> => {
-  try {
-    const response = (await API.get("answers/check", {
-      headers: {
-        authorization: `Bearer ${TOKEN}`,
-      },
-    })) as {
-      data: { hasUserSubmitted: boolean };
-    };
+  const response = (await API.get("answers/check", {
+    headers: {
+      authorization: `Bearer ${TOKEN}`,
+    },
+  })) as {
+    data: { hasUserSubmitted: boolean };
+  };
 
-    return response.data; // THIS is the object with hasUserSubmitted
-  } catch (error) {
-    throw error;
-  }
+  return response.data; // THIS is the object with hasUserSubmitted
+};
+
+export type QuizInput = {
+  week: number;
+  questions: {
+    questionId: string;
+    questionText: string;
+    questionType: "multiple-choice" | "open";
+    options?: { optionText: string; isCorrect: string }[];
+  }[];
+};
+
+export const getAllQuizzes = async () => {
+  const response = await API.get("quiz/all", {
+    headers: { authorization: `Bearer ${TOKEN}` },
+  });
+  return response;
+};
+
+export const createQuiz = async (data: QuizInput) => {
+  const response = await API.post("quiz", data, {
+    headers: { authorization: `Bearer ${TOKEN}` },
+  });
+  return response;
+};
+
+export const updateQuiz = async (id: string, data: QuizInput) => {
+  const response = await API.put(`quiz/${id}`, data, {
+    headers: { authorization: `Bearer ${TOKEN}` },
+  });
+  return response;
+};
+
+export const deleteQuiz = async (id: string) => {
+  const response = await API.delete(`quiz/${id}`, {
+    headers: { authorization: `Bearer ${TOKEN}` },
+  });
+  return response;
 };
 
 export type scoreBoardOutput = {
@@ -61,15 +86,50 @@ export type scoreBoardOutput = {
   score: number;
 };
 
+export type AdminScoreBoardEntry = {
+  _id: string;
+  name: string;
+  score: number;
+  type: "private" | "corporate";
+};
+
+export const getAdminScoreBoard = async (): Promise<AdminScoreBoardEntry[]> => {
+  const response = await API.get<AdminScoreBoardEntry[]>("scoreBoard/all", {
+    headers: { authorization: `Bearer ${TOKEN}` },
+  });
+  return response.data;
+};
+
+export type Contestant = { _id: string; name: string };
+
+export const getContestants = async (): Promise<Contestant[]> => {
+  const response = await API.get<Contestant[]>("contestants", {
+    headers: { authorization: `Bearer ${TOKEN}` },
+  });
+  return response.data;
+};
+
+export type AppConfig = { week: number; season: number };
+
+export const getConfig = async (): Promise<AppConfig> => {
+  const response = await API.get<AppConfig>("config", {
+    headers: { authorization: `Bearer ${TOKEN}` },
+  });
+  return response.data;
+};
+
+export const updateConfig = async (data: Partial<AppConfig>): Promise<AppConfig> => {
+  const response = await API.put<AppConfig>("config", data, {
+    headers: { authorization: `Bearer ${TOKEN}` },
+  });
+  return response.data;
+};
+
 export const getScoreBoard = async (): Promise<scoreBoardOutput[]> => {
-  try {
-    const response = (await API.get("scoreboard", {
-      headers: {
-        authorization: `Bearer ${TOKEN}`,
-      },
-    })) as { data: scoreBoardOutput[] };
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const response = (await API.get("scoreboard", {
+    headers: {
+      authorization: `Bearer ${TOKEN}`,
+    },
+  })) as { data: scoreBoardOutput[] };
+  return response.data;
 };

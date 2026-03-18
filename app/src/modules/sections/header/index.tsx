@@ -14,7 +14,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTranslate } from "@global/localization";
 import { useCallback, useEffect, useState } from "react";
 import { useMediaQuery } from "@mantine/hooks";
-import { checkForAnswer } from "@global/api/requests";
+import { checkForAnswer, getCurrentQuiz } from "@global/api/requests";
+import useApp from "@global/hooks/useApp";
 
 const Header = () => {
   const { tL } = useTranslate();
@@ -23,6 +24,8 @@ const Header = () => {
   const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.md})`);
   const { pathname } = useLocation();
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [hasQuiz, setHasQuiz] = useState(false);
+  const userRole = useApp((s) => s.userRole);
 
   const handleLogout = useCallback(() => {
     window.localStorage.removeItem("token");
@@ -35,20 +38,25 @@ const Header = () => {
   const openDrawer = () => setDrawerOpened(true);
 
   useEffect(() => {
-    const checkSubmissionStatus = async () => {
+    const checkStatus = async () => {
+      try {
+        await getCurrentQuiz();
+        setHasQuiz(true);
+      } catch {
+        setHasQuiz(false);
+      }
+
       try {
         const response = await checkForAnswer();
-        if (response.hasUserSubmitted) {
-          setIsSubmitted(true);
-        }
+        if (response.hasUserSubmitted) setIsSubmitted(true);
       } catch {
         setIsSubmitted(false);
       }
     };
 
-    checkSubmissionStatus();
+    checkStatus();
   }, []);
-
+  console.log(userRole)
   const MenuLinks = () => (
     <Flex
       mx="2rem"
@@ -57,7 +65,7 @@ const Header = () => {
       align={isMobile ? "stretch" : "center"}
     >
       {pathname === tL("/") ? null : (
-        <Indicator disabled={isSubmitted} size={12} color="red" processing>
+        <Indicator disabled={!hasQuiz || isSubmitted} size={12} color="red" processing>
           <Anchor component={Link} to={tL("/")} onClick={closeDrawer}>
             <Text size={isMobile ? "xl" : "1.25rem"}>Quiz</Text>
           </Anchor>
@@ -66,6 +74,11 @@ const Header = () => {
       <Anchor component={Link} to={tL("/scoreboard")} onClick={closeDrawer}>
         <Text size={isMobile ? "xl" : "1.25rem"}>Scoreboard</Text>
       </Anchor>
+      {userRole === "ADMIN" && (
+        <Anchor component={Link} to={tL("/admin")} onClick={closeDrawer}>
+          <Text size={isMobile ? "xl" : "1.25rem"}>Admin</Text>
+        </Anchor>
+      )}
       <Anchor
         onClick={() => {
           closeDrawer();

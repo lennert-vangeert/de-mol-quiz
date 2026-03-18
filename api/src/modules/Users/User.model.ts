@@ -26,6 +26,12 @@ const userSchema = new mongoose.Schema(
       default: "REGULAR",
       required: true,
     },
+    type: {
+      type: String,
+      enum: ["private", "corporate"],
+      default: "private",
+      required: true,
+    },
     score: {
       type: Number,
       required: true,
