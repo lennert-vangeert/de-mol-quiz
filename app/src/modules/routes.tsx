@@ -1,22 +1,16 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   createBrowserRouter,
   Outlet,
   useRouteError,
   Navigate,
-  useLocation,
 } from "react-router-dom";
 import { I18nProvider, PushLocaleToRoute } from "@global/localization";
 import { publicRoutes } from "./public";
 import ErrorPage from "./misc/errorPage";
 import { privateRoutes } from "./private";
-import { logPageView } from "@global/analytics/ga";
 
 function Root({ children }: { children?: React.ReactNode }) {
-  const location = useLocation();
-  useEffect(() => {
-    logPageView(location.pathname + location.search);
-  }, [location]);
   return <I18nProvider>{children ?? <Outlet />}</I18nProvider>;
 }
 
