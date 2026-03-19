@@ -2,7 +2,7 @@ import "dotenv/config";
 import mongoose from "mongoose";
 import app from "./app";
 import { Server } from "http";
-import { transporter } from "./mail/sendMail";
+// import { transporter } from "./mail/sendMail";
 import { dbState } from "./db/dbState";
 
 const port: number = parseInt(process.env.PORT ?? "9300");
@@ -42,10 +42,10 @@ const connectWithRetry = () => {
 // Start HTTP server immediately — don't wait for MongoDB
 const server = app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
-  transporter
-    .verify()
-    .then(() => console.log("Mail transporter ready"))
-    .catch((err) => console.error("Mail transporter error", err));
+  // transporter
+  //   .verify()
+  //   .then(() => console.log("Mail transporter ready"))
+  //   .catch((err) => console.error("Mail transporter error", err));
 });
 
 server.on("SIGINT", () => stopServer(server));
