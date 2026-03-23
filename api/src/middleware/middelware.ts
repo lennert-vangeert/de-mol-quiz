@@ -21,11 +21,8 @@ const registerMiddleware = (app: Express) => {
     origin: (incomingOrigin, callback) => {
       // No Origin header (e.g. curl / Postman)
       if (!incomingOrigin) {
-        if (isDev) {
-          return callback(null, true);
-        } else {
-          return callback(new Error("CORS policy: no‑origin requests"), false);
-        }
+        logger.debug("CORS request without origin: continuing without CORS headers");
+        return callback(null, false);
       }
 
       // Browser requests: must match your whitelist
@@ -36,10 +33,7 @@ const registerMiddleware = (app: Express) => {
 
       logger.warn("CORS origin rejected", { incomingOrigin });
 
-      return callback(
-        new Error(`CORS policy: origin ${incomingOrigin} not allowed`),
-        false
-      );
+      return callback(null, false);
     },
     credentials: true, // if you need to send/receive cookies or auth headers
   };
