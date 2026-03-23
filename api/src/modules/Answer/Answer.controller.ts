@@ -6,7 +6,6 @@ import Quiz from "../Quiz/Quiz.model";
 import ConfigModel from "../Config/Config.model";
 import answerModel from "./Answer.model";
 import UserModel from "../Users/User.model";
-import { sendMail } from "../../mail/sendMail";
 import { logger } from "../../utils/logger";
 
 // ——————————————
