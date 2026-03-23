@@ -1,5 +1,2 @@
-- Make sure i can see the answers on the admin panel
 - Make sure i can set an amount of points for each question if correct.
-- Make sure i can set a multiple choice question without correct answer for later.
-- The score is not calculated correctly
 - Final check

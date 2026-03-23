@@ -6,28 +6,22 @@ import { MantineProvider } from "@mantine/core";
 import { ModalsProvider } from "@mantine/modals";
 import type * as React from "react";
 
-// #083A59
-// #031926
-// #07668C
-// #0889A6
-// #0CDBF2
-// Color information
 const colors = {
-  text: "#F5F5F5",
-  white: "#F5F5F5",
-  black: "#1C1C1C",
-  dark: "#083A59",
-  medium: "#07668C",
-  light: "#0CDBF2",
-  mainBackground: "#031926", // Semantic white remains for components: change this for dark mode for example
+  text: "#1E1A16",
+  white: "#FFFFFF",
+  black: "#111827",
+  dark: "#374022",
+  medium: "#4F5A32",
+  light: "#6C7650",
+  mainBackground: "#F6F1E8",
   backgroundTransparent: "transparent",
-  warning: "#FFC107",
+  warning: "#D3A45B",
   default: {
-    primary: "#0CDBF2",
-    hover: "#07668C",
-    focus: "#0CDBF2",
-    active: "#0CDBF2",
-    disabled: "#E0E0E0",
+    primary: "#4F5A32",
+    hover: "#374022",
+    focus: "#4F5A32",
+    active: "#2D341C",
+    disabled: "#D1D5DB",
   },
 };
 
@@ -60,20 +54,20 @@ const borderWidths = {
 const theme: MantineThemeOverride = {
   primaryColor: "default",
   primaryShade: 5,
-  white: colors.mainBackground,
-  black: colors.text,
+  white: colors.white,
+  black: colors.black,
   colors: {
     default: [
       colors.default.disabled,
-      colors.default.hover,
-      "#FFFF03",
-      "#FFFF04",
+      "#E7D9C5",
+      "#D8C3A5",
+      "#C3AA84",
       colors.default.focus,
       colors.default.primary,
       colors.default.hover,
-      colors.default.primary,
-      "#FFFF05",
-      "#FFFF06",
+      colors.default.active,
+      "#212715",
+      "#171B0F",
     ],
     error: [
       "#ffebee",
@@ -100,7 +94,7 @@ const theme: MantineThemeOverride = {
       "#567930",
     ],
   },
-  fontFamily: "Roboto Mono, monospace",
+  fontFamily: "Inter, system-ui, -apple-system, Segoe UI, sans-serif",
   fontSizes: {
     xs: "0.6875rem",
     sm: "0.875rem",
@@ -116,7 +110,7 @@ const theme: MantineThemeOverride = {
     xl: "1.65",
   },
   headings: {
-    fontFamily: "Roboto Mono, monospace",
+    fontFamily: "Inter, system-ui, -apple-system, Segoe UI, sans-serif",
     textWrap: "wrap",
     sizes: {
       h1: {
@@ -160,7 +154,9 @@ const theme: MantineThemeOverride = {
       styles: {
         input: {
           borderWidth: borderWidths.input,
-          borderColor: colors.light,
+          borderColor: "#D8C7AE",
+          backgroundColor: colors.white,
+          color: colors.text,
         },
         invalid: {
           color: "error",
@@ -171,7 +167,7 @@ const theme: MantineThemeOverride = {
       styles: {
         input: {
           borderWidth: borderWidths.input,
-          borderColor: colors.medium,
+          borderColor: "#B9A78B",
         },
       },
     },
@@ -179,7 +175,7 @@ const theme: MantineThemeOverride = {
       styles: {
         radio: {
           borderWidth: borderWidths.input,
-          borderColor: colors.medium,
+          borderColor: "#B9A78B",
         },
       },
     },
@@ -214,6 +210,24 @@ const theme: MantineThemeOverride = {
       styles: {
         main: {
           minWidth: breakpoints.xs,
+          backgroundColor: colors.mainBackground,
+          color: colors.text,
+        },
+      },
+    },
+    Paper: {
+      styles: {
+        root: {
+          backgroundColor: "#FFFDF9",
+          borderColor: "#E2D2BB",
+        },
+      },
+    },
+    Table: {
+      styles: {
+        th: {
+          color: colors.dark,
+          backgroundColor: "#F2E8D9",
         },
       },
     },

@@ -26,11 +26,13 @@ const PageWrapper = ({ children }: PageWrapperProps) => {
   return (
     <AppShell>
       <Header />
-      <Box className={style.main} ml={margin} mr={margin}>
-        {/* Render direct children if provided, otherwise fallback to nested routes */}
-        {children ?? <Outlet />}
+      <Box className={style.layout}>
+        <Box className={style.main} ml={margin} mr={margin}>
+          {/* Render direct children if provided, otherwise fallback to nested routes */}
+          {children ?? <Outlet />}
+        </Box>
+        <Footer />
       </Box>
-      <Footer />
     </AppShell>
   );
 };

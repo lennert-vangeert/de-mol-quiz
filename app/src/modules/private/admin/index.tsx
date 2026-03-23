@@ -1,4 +1,6 @@
 import {
+  Accordion,
+  Badge,
   Box,
   Button,
   Center,
@@ -8,6 +10,7 @@ import {
   NumberInput,
   Paper,
   Radio,
+  Select,
   SegmentedControl,
   SimpleGrid,
   Stack,
@@ -29,9 +32,11 @@ import {
   getContestants,
   getConfig,
   updateConfig,
+  getQuizAnswersForAdmin,
   type QuizInput,
   type AdminScoreBoardEntry,
   type Contestant,
+  type AdminQuizAnswer,
 } from "@global/api/requests";
 
 type QuizFromApi = QuizInput & { _id: string };
@@ -39,6 +44,7 @@ type QuizFromApi = QuizInput & { _id: string };
 type QuestionDraft = {
   questionId: string;
   questionText: string;
+  points: number;
   questionType: "multiple-choice" | "open";
   options: { optionText: string; isCorrect: string }[];
 };
@@ -46,6 +52,7 @@ type QuestionDraft = {
 const emptyQuestion = (): QuestionDraft => ({
   questionId: crypto.randomUUID(),
   questionText: "",
+  points: 1,
   questionType: "multiple-choice",
   options: [
     { optionText: "", isCorrect: "false" },
@@ -60,6 +67,7 @@ const quizToForm = (
   questions: quiz.questions.map((q) => ({
     questionId: q.questionId,
     questionText: q.questionText,
+    points: q.points ?? 1,
     questionType: q.questionType,
     options:
       q.options && q.options.length > 0
@@ -130,6 +138,19 @@ const AdminPage = () => {
   const [quizzes, setQuizzes] = useState<QuizFromApi[]>([]);
   const [scoreBoard, setScoreBoard] = useState<AdminScoreBoardEntry[]>([]);
   const [contestants, setContestants] = useState<Contestant[]>([]);
+  const [quizAnswersByQuizId, setQuizAnswersByQuizId] = useState<
+    Record<string, AdminQuizAnswer[]>
+  >({});
+  const [loadingAnswersByQuizId, setLoadingAnswersByQuizId] = useState<
+    Record<string, boolean>
+  >({});
+  const [answerErrorByQuizId, setAnswerErrorByQuizId] = useState<
+    Record<string, string | null>
+  >({});
+  const [selectedSubmissionByQuizId, setSelectedSubmissionByQuizId] = useState<
+    Record<string, string | null>
+  >({});
+  const [openedQuizIds, setOpenedQuizIds] = useState<string[]>([]);
   const [currentWeek, setCurrentWeek] = useState<number>(1);
   const [savingWeek, setSavingWeek] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -331,6 +352,38 @@ const AdminPage = () => {
     );
   }
 
+  const fetchQuizAnswers = async (quizId: string) => {
+    if (quizAnswersByQuizId[quizId] || loadingAnswersByQuizId[quizId]) {
+      return;
+    }
+
+    setLoadingAnswersByQuizId((prev) => ({ ...prev, [quizId]: true }));
+    setAnswerErrorByQuizId((prev) => ({ ...prev, [quizId]: null }));
+
+    try {
+      const answers = await getQuizAnswersForAdmin(quizId);
+      setQuizAnswersByQuizId((prev) => ({ ...prev, [quizId]: answers }));
+      setSelectedSubmissionByQuizId((prev) => ({
+        ...prev,
+        [quizId]: prev[quizId] ?? answers[0]?._id ?? null,
+      }));
+    } catch {
+      setAnswerErrorByQuizId((prev) => ({
+        ...prev,
+        [quizId]: "Kon antwoorden voor deze quiz niet laden.",
+      }));
+    } finally {
+      setLoadingAnswersByQuizId((prev) => ({ ...prev, [quizId]: false }));
+    }
+  };
+
+  const getQuestionText = (quiz: QuizFromApi, questionId: string) => {
+    return (
+      quiz.questions.find((question) => question.questionId === questionId)
+        ?.questionText ?? questionId
+    );
+  };
+
   const privateEntries = scoreBoard.filter((e) => e.type === "private");
   const corporateEntries = scoreBoard.filter((e) => e.type === "corporate");
 
@@ -409,42 +462,161 @@ const AdminPage = () => {
         {quizzes.length === 0 ? (
           <Text c="dimmed">Nog geen quizzen.</Text>
         ) : (
-          <Table>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Week</Table.Th>
-                <Table.Th>Vragen</Table.Th>
-                <Table.Th />
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {quizzes.map((quiz) => (
-                <Table.Tr key={quiz._id}>
-                  <Table.Td>Week {quiz.week}</Table.Td>
-                  <Table.Td>{quiz.questions.length} vragen</Table.Td>
-                  <Table.Td>
-                    <Group gap="xs" justify="flex-end">
-                      <Button
-                        size="xs"
-                        variant="light"
-                        onClick={() => handleEdit(quiz)}
-                      >
-                        Bewerken
-                      </Button>
-                      <Button
-                        size="xs"
-                        color="red"
-                        variant="light"
-                        onClick={() => handleDelete(quiz)}
-                      >
-                        Verwijderen
-                      </Button>
+          <Accordion
+            variant="separated"
+            multiple
+            value={openedQuizIds}
+            onChange={(values) => {
+              setOpenedQuizIds(values);
+              values.forEach((quizId) => {
+                void fetchQuizAnswers(quizId);
+              });
+            }}
+          >
+            {quizzes.map((quiz) => {
+              const quizAnswers = quizAnswersByQuizId[quiz._id] ?? [];
+              const isAnswersLoading = loadingAnswersByQuizId[quiz._id];
+              const answersError = answerErrorByQuizId[quiz._id];
+
+              return (
+                <Accordion.Item key={quiz._id} value={quiz._id}>
+                  <Accordion.Control>
+                    <Group justify="space-between" wrap="nowrap">
+                      <Group gap="sm">
+                        <Text fw={600}>Week {quiz.week}</Text>
+                        <Badge variant="light">{quiz.questions.length} vragen</Badge>
+                        <Badge variant="outline">
+                          {quizAnswers.length} inzendingen
+                        </Badge>
+                      </Group>
+                      <Group gap="xs">
+                        <Button
+                          size="xs"
+                          variant="light"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleEdit(quiz);
+                          }}
+                        >
+                          Bewerken
+                        </Button>
+                        <Button
+                          size="xs"
+                          color="red"
+                          variant="light"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleDelete(quiz);
+                          }}
+                        >
+                          Verwijderen
+                        </Button>
+                      </Group>
                     </Group>
-                  </Table.Td>
-                </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
+                  </Accordion.Control>
+
+                  <Accordion.Panel>
+                    {isAnswersLoading ? (
+                      <Center py="md">
+                        <Loader size="sm" />
+                      </Center>
+                    ) : answersError ? (
+                      <Text c="red">{answersError}</Text>
+                    ) : quizAnswers.length === 0 ? (
+                      <Text c="dimmed">Nog geen antwoorden voor deze quiz.</Text>
+                    ) : (
+                      <Stack gap="md">
+                        <Group justify="space-between" align="flex-end">
+                          <Select
+                            label="Bekijk inzending van"
+                            placeholder="Kies deelnemer"
+                            data={quizAnswers.map((submission) => ({
+                              value: submission._id,
+                              label: submission.userName ?? "Onbekend",
+                            }))}
+                            value={selectedSubmissionByQuizId[quiz._id] ?? null}
+                            onChange={(value) =>
+                              setSelectedSubmissionByQuizId((prev) => ({
+                                ...prev,
+                                [quiz._id]: value,
+                              }))
+                            }
+                            w={320}
+                          />
+                          <Text size="sm" c="dimmed">
+                            {quizAnswers.length} totale inzendingen
+                          </Text>
+                        </Group>
+
+                        {(() => {
+                          const selectedSubmission =
+                            quizAnswers.find(
+                              (submission) =>
+                                submission._id ===
+                                selectedSubmissionByQuizId[quiz._id]
+                            ) ?? quizAnswers[0];
+
+                          return (
+                            <>
+                              <Paper withBorder p="sm">
+                                <Group justify="space-between">
+                                  <Group gap="sm">
+                                    <Text fw={600}>
+                                      {selectedSubmission.userName ?? "Onbekend"}
+                                    </Text>
+                                    <Badge variant="light">
+                                      Score: {selectedSubmission.totalScore}
+                                    </Badge>
+                                  </Group>
+                                  <Text size="sm" c="dimmed">
+                                    {new Date(selectedSubmission.createdAt).toLocaleString(
+                                      "nl-BE"
+                                    )}
+                                  </Text>
+                                </Group>
+                              </Paper>
+
+                              <Table>
+                                <Table.Thead>
+                                  <Table.Tr>
+                                    <Table.Th>Vraag</Table.Th>
+                                    <Table.Th>Antwoord</Table.Th>
+                                    <Table.Th>Resultaat</Table.Th>
+                                    <Table.Th>Punten</Table.Th>
+                                  </Table.Tr>
+                                </Table.Thead>
+                                <Table.Tbody>
+                                  {selectedSubmission.answers.map((answer) => (
+                                    <Table.Tr
+                                      key={`${selectedSubmission._id}-${answer.questionId}`}
+                                    >
+                                      <Table.Td>
+                                        {getQuestionText(quiz, answer.questionId)}
+                                      </Table.Td>
+                                      <Table.Td>{answer.userAnswer || "—"}</Table.Td>
+                                      <Table.Td>
+                                        <Badge
+                                          color={answer.isCorrect ? "teal" : "gray"}
+                                          variant="light"
+                                        >
+                                          {answer.isCorrect ? "Correct" : "Fout"}
+                                        </Badge>
+                                      </Table.Td>
+                                      <Table.Td>{answer.pointsAwarded}</Table.Td>
+                                    </Table.Tr>
+                                  ))}
+                                </Table.Tbody>
+                              </Table>
+                            </>
+                          );
+                        })()}
+                      </Stack>
+                    )}
+                  </Accordion.Panel>
+                </Accordion.Item>
+              );
+            })}
+          </Accordion>
         )}
       </Paper>
 
@@ -486,6 +658,18 @@ const AdminPage = () => {
                   updateQuestion(qIdx, { questionText: e.currentTarget.value })
                 }
                 mb="sm"
+              />
+
+              <NumberInput
+                label="Punten bij correct antwoord"
+                value={q.points}
+                min={0}
+                step={1}
+                onChange={(value) =>
+                  updateQuestion(qIdx, { points: Number(value) || 0 })
+                }
+                mb="sm"
+                w={200}
               />
 
               <SegmentedControl

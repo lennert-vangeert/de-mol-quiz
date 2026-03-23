@@ -7,6 +7,7 @@ export type Quiz = Document & {
     {
       questionId: string;
       questionText: string;
+      points: number;
       questionType: "multiple-choice" | "open";
       options?: {
         isCorrect: string;

@@ -4,7 +4,7 @@ import { useMediaQuery } from "@mantine/hooks";
 const InactivePage = () => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   return (
-    <Center className={styles.box} mih={800}>
+    <Center className={styles.box} h="100%">
       <Card withBorder={!isMobile}>
         <Title ta="center" order={2}>
           De "De Mol" quiz is momenteel inactief.

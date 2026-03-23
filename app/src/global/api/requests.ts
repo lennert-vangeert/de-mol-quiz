@@ -20,6 +20,20 @@ type answerInput = {
   totalScore: number;
 };
 
+export type AdminQuizAnswer = {
+  _id: string;
+  userId: string;
+  userName?: string;
+  answers: {
+    questionId: string;
+    userAnswer: string;
+    isCorrect: boolean;
+    pointsAwarded: number;
+  }[];
+  totalScore: number;
+  createdAt: string;
+};
+
 export const sendAnswer = async (answer: answerInput) => {
   await API.post("answers", answer, {
     headers: {
@@ -47,6 +61,7 @@ export type QuizInput = {
   questions: {
     questionId: string;
     questionText: string;
+    points: number;
     questionType: "multiple-choice" | "open";
     options?: { optionText: string; isCorrect: string }[];
   }[];
@@ -113,6 +128,15 @@ export type AppConfig = { week: number; season: number };
 
 export const getConfig = async (): Promise<AppConfig> => {
   const response = await API.get<AppConfig>("config", {
+    headers: { authorization: `Bearer ${TOKEN}` },
+  });
+  return response.data;
+};
+
+export const getQuizAnswersForAdmin = async (
+  quizId: string
+): Promise<AdminQuizAnswer[]> => {
+  const response = await API.get<AdminQuizAnswer[]>(`answers/quiz/${quizId}`, {
     headers: { authorization: `Bearer ${TOKEN}` },
   });
   return response.data;

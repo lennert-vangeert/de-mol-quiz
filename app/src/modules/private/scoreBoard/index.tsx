@@ -107,15 +107,8 @@ const ScoreBoardPage = () => {
     return (
       <>
         <Head title="Scorebord" description="Bekijk de hoogste scores" />
-        <Center mih="30rem" p="2rem">
-          <Paper
-            mih="60rem"
-            shadow="xl"
-            withBorder
-            p="md"
-            w="100%"
-            maw="37.5rem"
-          >
+        <Center h="100%" p="2rem">
+          <Paper shadow="xl" withBorder p="md" w="100%" maw="37.5rem">
             <Text>{error}</Text>
             <Anchor component="button" onClick={() => window.location.reload()}>
               Refresh
@@ -133,8 +126,8 @@ const ScoreBoardPage = () => {
         description="Bekijk de hoogste scores"
         SEODisabled
       />
-      <Center py="2rem" mih="75vh">
-        <Paper mih="30rem" shadow="xl" withBorder p="md" w="100%" maw="37.5rem">
+      <Center h="100%" py="2rem">
+        <Paper shadow="xl" withBorder p="md" w="100%" maw="37.5rem">
           <Title order={2} mb="md">
             Scorebord
           </Title>
@@ -187,7 +180,7 @@ const ScoreBoardPage = () => {
           {showWinner && !loading && winner && (
             <Center mt="2rem">
               <Confetti
-                style={{ position: "absolute", top: 0, left: 0, zIndex: 1 }}
+                style={{ position: "fixed", inset: 0, zIndex: 1 }}
                 width={width}
                 height={height}
                 recycle

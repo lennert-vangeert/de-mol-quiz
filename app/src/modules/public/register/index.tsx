@@ -81,7 +81,7 @@ const RegisterPage = () => {
   return (
     <>
       <Head title="Registreren" description="Registreer" />
-      <Center h="100vh">
+      <Center h="100dvh">
         <Paper
           shadow="xl"
           withBorder={!isMobile}

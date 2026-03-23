@@ -9,6 +9,7 @@ const quizSchema = new mongoose.Schema<Quiz>(
       {
         questionId: { type: String, required: true },
         questionText: { type: String, required: true },
+        points: { type: Number, required: true, default: 1, min: 0 },
         questionType: {
           type: String,
           enum: ["multiple-choice", "open"],

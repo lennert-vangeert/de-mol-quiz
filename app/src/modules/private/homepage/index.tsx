@@ -29,6 +29,7 @@ export type Quiz = {
   questions: {
     questionId: string;
     questionText: string;
+    points: number;
     questionType: "multiple-choice" | "open";
     options?: {
       optionText: string;
@@ -41,8 +42,7 @@ const Homepage = () => {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
-  // Now keys are composite: `${questionId}-${index}`
-  const answerKeyRef = React.useRef<{ [compositeKey: string]: string }>({}); // ← changed
+  const answerKeyRef = React.useRef<{ [questionId: string]: string }>({});
 
   const form = useForm<{ [key: string]: string }>({
     initialValues: {},
@@ -72,20 +72,17 @@ const Homepage = () => {
         const rawQuiz: Quiz = res?.data;
         if (!rawQuiz) return;
 
-        // Build a “safe” quiz + composite keys
+        // Build a “safe” quiz
         const safeQuiz = {
           _id: rawQuiz._id,
           week: rawQuiz.week,
-          questions: rawQuiz.questions.map((q, idx) => {
-            const compositeKey = `${q.questionId}-${idx}`; // ← changed
-
-            // pull out the correct answer into answerKeyRef under compositeKey
+          questions: rawQuiz.questions.map((q) => {
             if (q.questionType === "multiple-choice" && q.options) {
               const correctOpt = (q as any).options.find(
                 (o: any) => o.isCorrect === "true"
               );
               if (correctOpt) {
-                answerKeyRef.current[compositeKey] = correctOpt.optionText; // ← changed
+                answerKeyRef.current[q.questionId] = correctOpt.optionText;
               }
               const safeOpts = q.options.map((o) => ({
                 optionText: o.optionText,
@@ -93,28 +90,23 @@ const Homepage = () => {
               return {
                 ...q,
                 options: safeOpts,
-                questionId: compositeKey, // ← changed (we overwrite questionId here!)
               };
             } else {
-              // open question
               if ((q as any).correctAnswer) {
-                answerKeyRef.current[compositeKey] = (q as any).correctAnswer; // ← changed
+                answerKeyRef.current[q.questionId] = (q as any).correctAnswer;
               }
               const { correctAnswer, ...rest } = q as any;
-              return {
-                ...rest,
-                questionId: compositeKey, // ← changed
-              };
+              return rest;
             }
           }),
         };
 
         setQuiz(safeQuiz);
 
-        // init form values under each composite key
+        // init form values
         const initVals: { [k: string]: string } = {};
         safeQuiz.questions.forEach((q) => {
-          initVals[q.questionId] = ""; // ← changed
+          initVals[q.questionId] = "";
         });
         form.setValues(initVals);
       } catch {
@@ -136,7 +128,7 @@ const Homepage = () => {
     const answers =
       quiz?.questions.map((q) => {
         const userAnswer = values[q.questionId] || "";
-        const correctAnswer = answerKeyRef.current[q.questionId] || ""; // ← unchanged usage
+        const correctAnswer = answerKeyRef.current[q.questionId] || "";
         const isCorrect =
           userAnswer.trim().toLowerCase() ===
           correctAnswer.trim().toLowerCase();
@@ -169,7 +161,7 @@ const Homepage = () => {
 
   if (loading) {
     return (
-      <Center mih="80vh" p="2rem" className={classes.background}>
+      <Center h="100%" p="2rem" className={classes.background}>
         <Loader />
       </Center>
     );
@@ -177,7 +169,7 @@ const Homepage = () => {
 
   if (error) {
     return (
-      <Center mih="80vh" p="2rem" className={classes.background}>
+      <Center h="100%" p="2rem" className={classes.background}>
         <Paper shadow="xl" withBorder p="md" style={{ maxWidth: 600 }}>
           <Text>{error}</Text>
           <Anchor component="button" onClick={() => window.location.reload()}>
@@ -192,7 +184,7 @@ const Homepage = () => {
     <>
       <Head title="Quiz" description="Weekly quiz for De Mol" SEODisabled />
       {!isSubmitted ? (
-        <Center mih="80vh" p="2rem" className={classes.background}>
+        <Center h="100%" p="2rem" className={classes.background}>
           <Box p="md" w="100%" maw="45rem">
             {quiz ? (
               <>
@@ -207,7 +199,7 @@ const Homepage = () => {
                       </Title>
                       {q.questionType === "multiple-choice" && q.options ? (
                         <Radio.Group
-                          name={q.questionId} // ← composite key here
+                          name={q.questionId}
                           value={form.values[q.questionId]}
                           onChange={(val) =>
                             form.setFieldValue(q.questionId, val)
@@ -220,7 +212,7 @@ const Homepage = () => {
                               key={i}
                               value={opt.optionText}
                               label={opt.optionText}
-                              id={`${q.questionId}-opt-${i}`} // ← ensure unique input IDs
+                              id={`${q.questionId}-opt-${i}`}
                             />
                           ))}
                         </Radio.Group>
@@ -240,7 +232,7 @@ const Homepage = () => {
           </Box>
         </Center>
       ) : (
-        <Center p="2rem">
+        <Center h="100%" p="2rem">
           <Paper shadow="xl" withBorder p="md" style={{ maxWidth: 600 }}>
             <Title order={2} mb="md">
               De Mol Quiz - Week {quiz?.week}

@@ -96,7 +96,7 @@ const ConfirmResetPasswordPage = () => {
         SEODisabled
         description="Wijzig je wachtwoord"
       />
-      <Center h="100vh">
+      <Center h="100dvh">
         <Paper
           shadow="xl"
           withBorder={!isMobile}

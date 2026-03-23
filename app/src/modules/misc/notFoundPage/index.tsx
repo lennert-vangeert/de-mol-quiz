@@ -6,8 +6,8 @@ const NotFoundPage = () => {
   const { t } = useTranslation();
   return (
     <>
-    <Head title={t('404 - Not Found')} description={t('This page was not found')} />
-      <Center h="100vh">
+      <Head title={t('404 - Not Found')} description={t('This page was not found')} />
+      <Center h="100dvh">
         <h1>{t('404 - Not Found')}</h1>
       </Center>
     </>

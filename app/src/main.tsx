@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import "@mantine/core/styles.css";
+import "./global.css";
 import { MantineStyles } from "@global/style/mantineTheme/index.tsx";
 import { HelmetProvider } from "react-helmet-async";
 import { router } from "./modules/routes";
@@ -14,14 +15,12 @@ if (TOKEN) {
 }
 
 createRoot(document.getElementById("root")!).render(
-  <>
+  <StrictMode>
+    <HelmetProvider>
+      <MantineStyles>
+        <RouterProvider router={router} />
+      </MantineStyles>
+    </HelmetProvider>
     <SpeedInsights />
-    <StrictMode>
-      <HelmetProvider>
-        <MantineStyles>
-          <RouterProvider router={router} />
-        </MantineStyles>
-      </HelmetProvider>
-    </StrictMode>
-  </>
+  </StrictMode>
 );

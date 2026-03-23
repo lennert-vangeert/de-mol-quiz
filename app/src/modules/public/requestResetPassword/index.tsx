@@ -66,7 +66,7 @@ const RequestResetPasswordPage = () => {
         SEODisabled
         description="Reset je wachtwoord"
       />
-      <Center h="100vh">
+      <Center h="100dvh">
         <Paper
           shadow="xl"
           withBorder={!isMobile}

@@ -55,6 +55,36 @@ const getAnswerDetail = async (
   }
 };
 
+const getAnswersForQuiz = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { user } = req as AuthRequest;
+    if (user.role !== "ADMIN") {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const { quizId } = req.params;
+
+    const quiz = await Quiz.findById(quizId).select("_id").lean();
+    if (!quiz) {
+      throw new notFoundError("Quiz not found");
+    }
+
+    const answers = await answerModel
+      .find({ quizId })
+      .sort({ createdAt: -1 })
+      .select("userId userName answers totalScore createdAt")
+      .lean();
+
+    res.json(answers);
+  } catch (e) {
+    next(e);
+  }
+};
+
 // ——————————————
 // Controller: create a new answer with server-side scoring
 // ——————————————
@@ -92,20 +122,42 @@ const createAnswer = async (
     }
 
     // 5) Compute scoring server-side
-    const scoredAnswers = body.answers.map((submitted) => {
-      const question = quiz.questions.find(
+    const scoredAnswers = body.answers.map((submitted, index) => {
+      let question = quiz.questions.find(
         (q) => q.questionId === submitted.questionId
       );
+
+      if (!question) {
+        const indexSuffix = `-${index}`;
+        if (submitted.questionId.endsWith(indexSuffix)) {
+          const normalizedQuestionId = submitted.questionId.slice(
+            0,
+            -indexSuffix.length
+          );
+          question = quiz.questions.find(
+            (q) => q.questionId === normalizedQuestionId
+          );
+        }
+      }
+
       let isCorrect = false;
       let pointsAwarded = 0;
+
       if (question?.questionType === "multiple-choice") {
+        const normalizedUserAnswer = submitted.userAnswer.trim().toLowerCase();
         const matched = question.options?.find(
-          (o) => o.optionText === submitted.userAnswer
+          (o) => o.optionText.trim().toLowerCase() === normalizedUserAnswer
         );
         isCorrect = matched?.isCorrect === "true";
-        pointsAwarded = isCorrect ? 1 : 0;
+        pointsAwarded = isCorrect ? question.points ?? 1 : 0;
       }
-      return { ...submitted, isCorrect, pointsAwarded };
+
+      return {
+        ...submitted,
+        questionId: question?.questionId ?? submitted.questionId,
+        isCorrect,
+        pointsAwarded,
+      };
     });
     const totalScore = scoredAnswers.reduce(
       (sum, a) => sum + a.pointsAwarded,
@@ -289,6 +341,7 @@ export const checkMoleAnswers = async () => {
 export {
   createAnswer,
   getAnswerDetail,
+  getAnswersForQuiz,
   getCurrentUserAndWeekAnswer,
   closeOldAnswers,
   givePoints,

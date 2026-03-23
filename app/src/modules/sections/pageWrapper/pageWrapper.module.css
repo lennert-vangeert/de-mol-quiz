@@ -1,4 +1,10 @@
-.main {
+.layout {
   margin-top: 10vh;
-  min-height: calc(100vh- 15vh);
+  min-height: calc(100dvh - 10vh);
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
 }
