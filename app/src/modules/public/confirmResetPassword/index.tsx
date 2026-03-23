@@ -16,6 +16,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslate } from "@global/localization";
 import { useMediaQuery } from "@mantine/hooks";
 import Head from "@global/head";
+import { logger } from "@global/utils/logger";
 
 const ConfirmResetPasswordPage = () => {
   const navigate = useNavigate();
@@ -78,7 +79,9 @@ const ConfirmResetPasswordPage = () => {
           setSuccess(true);
         }
       } catch (err) {
-        console.error(err);
+        logger.error("Reset password confirmation failed", {
+          error: err instanceof Error ? err.message : String(err),
+        });
         setGeneralError(
           "Er is iets misgegaan bij het wijzigen van je wachtwoord."
         );

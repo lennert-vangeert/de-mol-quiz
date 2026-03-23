@@ -11,6 +11,7 @@ import * as React from "react";
 import Head from "@global/head";
 import { getScoreBoard, scoreBoardOutput } from "@global/api/requests";
 import Confetti from "react-confetti";
+import { logger } from "@global/utils/logger";
 
 // Pull constant arrays/functions out of the component
 const skeletonSizes = [40, 30, 25, 20, 20] as const;
@@ -31,7 +32,9 @@ const ScoreBoardPage = () => {
       const response = await getScoreBoard();
       setScoreBoard(response);
     } catch (err) {
-      console.error(err);
+      logger.error("Failed to fetch scoreboard", {
+        error: err instanceof Error ? err.message : String(err),
+      });
       setError("Er ging iets fout, probeer het opnieuw.");
     } finally {
       setLoading(false);

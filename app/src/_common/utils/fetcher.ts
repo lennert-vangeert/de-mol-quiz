@@ -1,4 +1,5 @@
 import axios from "axios";
+import { logger } from "@global/utils/logger";
 
 /**
  * Configuration options for an HTTP request.
@@ -27,7 +28,11 @@ export const fetch = async (
     const response = await axios(options);
     return response.data;
   } catch (error) {
-    console.error("Error fetching data:", error);
+    logger.error("Error fetching data", {
+      url,
+      method: options.method,
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw error;
   }
 };

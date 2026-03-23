@@ -6,6 +6,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { I18nProvider, PushLocaleToRoute } from "@global/localization";
+import { logger } from "@global/utils/logger";
 import { publicRoutes } from "./public";
 import ErrorPage from "./misc/errorPage";
 import { privateRoutes } from "./private";
@@ -17,7 +18,9 @@ function Root({ children }: { children?: React.ReactNode }) {
 // A simple error boundary that catches route errors and displays the NotFoundPage.
 function RootErrorBoundary() {
   const error = useRouteError();
-  console.error("Routing error:", error);
+  logger.error("Routing error", {
+    error: error instanceof Error ? error.message : String(error),
+  });
 
   // If error status is 404, you might choose to render a NotFoundPage or redirect.
   return (

@@ -4,6 +4,7 @@ import app from "./app";
 import { Server } from "http";
 // import { transporter } from "./mail/sendMail";
 import { dbState } from "./db/dbState";
+import { logger } from "./utils/logger";
 
 const port: number = parseInt(process.env.PORT ?? "9300");
 
@@ -20,7 +21,7 @@ const connectWithRetry = () => {
   mongoose
     .connect(process.env.MONGO_CONNECTION!)
     .then(() => {
-      console.log("Connected to MongoDB");
+      logger.info("Connected to MongoDB");
       dbState.isConnected = true;
       if (retryInterval) {
         clearInterval(retryInterval);
@@ -28,11 +29,11 @@ const connectWithRetry = () => {
       }
     })
     .catch((err) => {
-      console.error("MongoDB connection error:", err.message);
+      logger.error("MongoDB connection error", { message: err.message });
       dbState.isConnected = false;
       if (!retryInterval) {
         retryInterval = setInterval(() => {
-          console.log("Retrying MongoDB connection...");
+          logger.warn("Retrying MongoDB connection");
           connectWithRetry();
         }, 60_000);
       }
@@ -41,11 +42,11 @@ const connectWithRetry = () => {
 
 // Start HTTP server immediately — don't wait for MongoDB
 const server = app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  logger.info("Server started", { url: `http://localhost:${port}` });
   // transporter
   //   .verify()
-  //   .then(() => console.log("Mail transporter ready"))
-  //   .catch((err) => console.error("Mail transporter error", err));
+  //   .then(() => logger.info("Mail transporter ready"))
+  //   .catch((err) => logger.error("Mail transporter error", { message: err?.message }));
 });
 
 server.on("SIGINT", () => stopServer(server));
@@ -58,7 +59,7 @@ const stopServer = (server: Server) => {
   if (retryInterval) clearInterval(retryInterval);
   mongoose.connection.close();
   server.close(() => {
-    console.log("Server closed");
+    logger.info("Server closed");
     process.exit();
   });
 };

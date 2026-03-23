@@ -3,10 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { z } from "zod";
 import User from "./User.model";
 import { AuthRequest } from "../../middleware/auth/authMiddleware";
-import { sendMail } from "../../mail/sendMail";
-import { generateNewQuizEmail } from "../../mail/mails/newQuiz";
-import { generateResetPasswordEmail } from "../../mail/mails/resetPassword";
-import { generateWinnerEmail } from "../../mail/mails/celebration";
+import { logger } from "../../utils/logger";
 
 // ————————————————————————
 // Zod schemas for all request bodies
@@ -55,7 +52,7 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
   }
 
   try {
-    console.debug("logging in user");
+    logger.debug("Logging in user", { email: parsed.data.email });
     const { user } = req as AuthRequest;
     const dataBaseUser = await User.findOne({ email: parsed.data.email });
 
@@ -80,7 +77,7 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password, name } = parsed.data;
 
   try {
-    console.debug("registering user");
+    logger.debug("Registering user", { email });
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: "User already exists" });
@@ -112,7 +109,7 @@ const getScoreBoard = async (
   res: Response,
   next: NextFunction
 ) => {
-  console.debug("getting scoreboard");
+  logger.debug("Getting scoreboard");
   try {
     const { user } = req as AuthRequest;
     const scoreBoard = await User.find({ type: user.type, role: "REGULAR" })
@@ -125,46 +122,13 @@ const getScoreBoard = async (
   }
 };
 
-// ————————————————————————
-// POST /send-new-quiz-email
-// (no input to validate)
-// ————————————————————————
-const sendNewQuizEmailToAllUsers = async () => {
-  console.debug("sending new quiz email to all users");
-  const users = await User.find({ receiveEmails: true });
-  users.forEach((user) => {
-    sendMail(
-      user.email,
-      `De nieuwe molquiz is er!`,
-      generateNewQuizEmail("7", user.email)
-    );
-  });
-};
 
-// ————————————————————————
-// POST /send-winner-email
-// (no input to validate)
-// ————————————————————————
-
-export const sendWinnerEmail = async () => {
-  console.debug("sending winner email to all users");
-  const users = await User.find({ receiveEmails: true });
-  // find user with highest score
-  const winner = await User.findOne({ score: { $gt: 0 } }).sort({ score: -1 });
-  users.forEach((user) => {
-    sendMail(
-      user.email,
-      `De winnaar is bekend!`,
-      generateWinnerEmail(winner?.name || "Laura Volkaert", user.email)
-    );
-  });
-};
 
 // ————————————————————————
 // GET /me
 // ————————————————————————
 const getCurrentUser = (req: Request, res: Response, next: NextFunction) => {
-  console.debug("getting current user");
+  logger.debug("Getting current user");
   const { user } = req as AuthRequest;
   res.json(user);
 };
@@ -193,7 +157,7 @@ const unsubscribeFromEmails = async (
   }
 
   try {
-    console.debug("unsubscribing user from emails");
+    logger.debug("Unsubscribing user from emails", { email: parsed.data.email });
     const { user: authUser } = req as AuthRequest;
     if (authUser.email !== parsed.data.email) {
       return res.status(403).json({ message: "Forbidden" });
@@ -232,12 +196,6 @@ const requestResetPassword = async (
     user.resetPasswordCode = resetCode;
     user.resetPasswordExpires = new Date(Date.now() + 300000); // 5 min
     await user.save();
-
-    sendMail(
-      email,
-      "Reset Password",
-      generateResetPasswordEmail(email, resetCode, user.name || "User")
-    );
     res.status(200).json({ message: "Reset password code sent" });
   } catch (error) {
     next(error);
@@ -345,7 +303,6 @@ export {
   register,
   getScoreBoard,
   getFullScoreBoard,
-  sendNewQuizEmailToAllUsers,
   getCurrentUser,
   refreshToken,
   unsubscribeFromEmails,

@@ -7,6 +7,7 @@ import contestantRoutes from "../modules/Contestant/Contestant.routes";
 import configRoutes from "../modules/Config/Config.routes";
 import { authJwt } from "../middleware/auth/authMiddleware";
 import { errorHandler } from "../middleware/error/errorHandlerMiddleware";
+import { logger } from "../utils/logger";
 
 const registerRoutes = (app: Express) => {
   app.use("/", userPublicRoutes);
@@ -19,6 +20,11 @@ const registerRoutes = (app: Express) => {
   authRoutes.use("/", configRoutes);
 
   app.use(authJwt, authRoutes);
+
+  logger.info("Routes registered", {
+    publicRoutes: ["users public"],
+    protectedRouteGroups: ["quiz", "users private", "answers", "contestants", "config"],
+  });
 
   //AFTER ALL ROUTES
   app.use(errorHandler);

@@ -7,8 +7,7 @@ import ConfigModel from "../Config/Config.model";
 import answerModel from "./Answer.model";
 import UserModel from "../Users/User.model";
 import { sendMail } from "../../mail/sendMail";
-import { generateNewSubmissionEmail } from "../../mail/mails/newSubmission";
-import { generateConfirmSubmissionEmail } from "../../mail/mails/confirmSubmission";
+import { logger } from "../../utils/logger";
 
 // ——————————————
 // Helper: get the active week from Config DB
@@ -185,18 +184,6 @@ const createAnswer = async (
 
     // 8) Respond & fire off emails
     res.json(result);
-    sendMail(
-      process.env.ADMIN_EMAIL ?? "",
-      "New Quiz Submission",
-      generateNewSubmissionEmail(result)
-    );
-    if (user.receiveEmails) {
-      sendMail(
-        user.email,
-        "Je quiz inzending is ontvangen",
-        generateConfirmSubmissionEmail(result, user.email)
-      );
-    }
   } catch (e) {
     next(e);
   }
@@ -237,12 +224,14 @@ const closeOldAnswers = async () => {
       closed: false,
     });
     for (const answer of answers) {
-      console.log(`Closing answer with id ${answer._id}`);
+      logger.info("Closing old answer", { answerId: String(answer._id) });
       answer.closed = true;
       await answer.save();
     }
   } catch (e) {
-    console.error("Failed to close old answers:", e);
+    logger.error("Failed to close old answers", {
+      error: e instanceof Error ? e.message : String(e),
+    });
   }
 };
 
@@ -257,7 +246,7 @@ const givePoints = async () => {
 
   const answers = await answerModel.find({ closed: false });
   if (answers.length === 0) {
-    console.log("No open answers to grade.");
+    logger.info("No open answers to grade");
     return;
   }
 
@@ -289,7 +278,10 @@ const givePoints = async () => {
 
     const user = await UserModel.findById(ansDoc.userId);
     if (!user) {
-      console.warn(`User ${ansDoc.userId} not found for answer ${ansDoc._id}`);
+      logger.warn("User not found for answer", {
+        userId: String(ansDoc.userId),
+        answerId: String(ansDoc._id),
+      });
       continue;
     }
     user.score = (user.score || 0) + points;
@@ -301,10 +293,14 @@ const givePoints = async () => {
     const reasonText = reasons.length
       ? `(${reasons.join(" & ")})`
       : "(no points awarded)";
-    console.log(`${user.name} got ${points} points ${reasonText}`);
+    logger.info("Bonus points awarded", {
+      userName: user.name,
+      points,
+      reason: reasonText,
+    });
   }
 
-  console.log("✅ All open answers have been graded and closed.");
+  logger.info("All open answers have been graded and closed");
 };
 // givePoints()
 
@@ -314,7 +310,7 @@ export const checkMoleAnswers = async () => {
 
   const answers = await answerModel.find({});
   if (answers.length === 0) {
-    console.log("No answers found.");
+    logger.info("No answers found for mole check");
     return;
   }
 
@@ -323,18 +319,22 @@ export const checkMoleAnswers = async () => {
     if (moleGuess === mole) {
       const user = await UserModel.findById(ansDoc.userId);
       if (!user) {
-        console.log(
-          `⚠️  Couldn't find user ${ansDoc.userId} for answer ${ansDoc._id}`
-        );
+        logger.warn("User not found for mole answer", {
+          userId: String(ansDoc.userId),
+          answerId: String(ansDoc._id),
+        });
         continue;
       }
       user.score = (user.score || 0) + points;
       await user.save();
-      console.log(`${user.name} got ${points} points (correct mole guess)`);
+      logger.info("Mole bonus awarded", {
+        userName: user.name,
+        points,
+      });
     }
   }
 
-  console.log("✅  All mole-guesses have been checked.");
+  logger.info("All mole-guesses have been checked");
 };
 // checkMoleAnswers();
 

@@ -5,6 +5,8 @@ import helmet from "helmet";
 import passport from "passport";
 import healthRoutes from "../modules/Health/Health.routes";
 import { dbState } from "../db/dbState";
+import { requestLogger } from "./requestLogger";
+import { logger } from "../utils/logger";
 
 const registerMiddleware = (app: Express) => {
   // —————————————————————————————
@@ -28,8 +30,11 @@ const registerMiddleware = (app: Express) => {
 
       // Browser requests: must match your whitelist
       if (allowedOrigins.includes(incomingOrigin)) {
+        logger.debug("CORS origin allowed", { incomingOrigin });
         return callback(null, true);
       }
+
+      logger.warn("CORS origin rejected", { incomingOrigin });
 
       return callback(
         new Error(`CORS policy: origin ${incomingOrigin} not allowed`),
@@ -39,6 +44,7 @@ const registerMiddleware = (app: Express) => {
     credentials: true, // if you need to send/receive cookies or auth headers
   };
 
+  app.use(requestLogger);
   app.use(cors(corsOptions));
   app.use("/", healthRoutes);
 
@@ -49,6 +55,9 @@ const registerMiddleware = (app: Express) => {
 
   if (!isActive) {
     app.use((_, res, __) => {
+      logger.warn("API inactive request rejected", {
+        statusCode: 503,
+      });
       res.status(503).json({
         message: "The API is currently inactive.",
       });
@@ -60,6 +69,9 @@ const registerMiddleware = (app: Express) => {
   // —————————————————————————————
   app.use((_, res, next) => {
     if (!dbState.isConnected) {
+      logger.warn("Database unavailable request rejected", {
+        statusCode: 503,
+      });
       return res.status(503).json({ message: "Database unavailable, retrying..." });
     }
     next();
@@ -84,6 +96,12 @@ const registerMiddleware = (app: Express) => {
   // Compression middleware
   // —————————————————————————————
   app.use(compression());
+
+  logger.info("Middleware stack registered", {
+    isActive,
+    isDev,
+    allowedOrigins,
+  });
 };
 
 export { registerMiddleware };

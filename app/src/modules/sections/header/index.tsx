@@ -56,7 +56,7 @@ const Header = () => {
 
     checkStatus();
   }, []);
-  console.log(userRole)
+
   const MenuLinks = () => (
     <Flex
       mx="2rem"

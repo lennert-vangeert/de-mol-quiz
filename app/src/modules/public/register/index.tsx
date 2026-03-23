@@ -17,6 +17,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslate } from "@global/localization";
 import { useMediaQuery } from "@mantine/hooks";
 import Head from "@global/head";
+import { logger } from "@global/utils/logger";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
@@ -69,7 +70,9 @@ const RegisterPage = () => {
           navigate(tL("/"));
         }
       } catch (err) {
-        console.error(err);
+        logger.error("Registration failed", {
+          error: err instanceof Error ? err.message : String(err),
+        });
         setGeneralError("Er is iets misgegaan bij registratie");
       } finally {
         setLoading(false);
