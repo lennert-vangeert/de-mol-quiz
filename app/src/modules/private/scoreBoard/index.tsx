@@ -22,7 +22,7 @@ const ScoreBoardPage = () => {
   const [error, setError] = React.useState<string | null>(null);
 
   // Toggle to show winner celebration
-  const showWinner = true;
+  const showWinner = false;
 
   // Fetch logic memoized
   const fetchScoreBoard = React.useCallback(async () => {
