@@ -17,18 +17,6 @@ const getCurrentQuiz = async (
       res.status(404).json({ message: "No quiz found" });
       return;
     }
-    // if its between 20:00 and 23:59 ona sunday return no quiz found
-    // const currentDate = new Date();
-    // const currentDay = currentDate.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-    // const currentHour = currentDate.getHours(); // 0-23
-    // if (
-    //   currentDay === 0 &&
-    //   currentHour >= 20 &&
-    //   process.env.ENVIRONMENT === "prd"
-    // ) {
-    //   res.status(404).json({ message: "No quiz found" });
-    //   return;
-    // }
     res.json(quiz);
   } catch (e) {
     next(e);

@@ -9,7 +9,7 @@ import {
 } from "@mantine/core";
 import * as React from "react";
 import Head from "@global/head";
-import { getScoreBoard, scoreBoardOutput } from "@global/api/requests";
+import { getConfig, getScoreBoard, scoreBoardOutput } from "@global/api/requests";
 import Confetti from "react-confetti";
 import { logger } from "@global/utils/logger";
 
@@ -21,16 +21,19 @@ const ScoreBoardPage = () => {
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState<string | null>(null);
 
-  // Toggle to show winner celebration
-  const showWinner = false;
+  const [showWinner, setShowWinner] = React.useState(false);
 
   // Fetch logic memoized
   const fetchScoreBoard = React.useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await getScoreBoard();
+      const [response, config] = await Promise.all([
+        getScoreBoard(),
+        getConfig(),
+      ]);
       setScoreBoard(response);
+      setShowWinner(config.showWinner);
     } catch (err) {
       logger.error("Failed to fetch scoreboard", {
         error: err instanceof Error ? err.message : String(err),

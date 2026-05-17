@@ -13,6 +13,7 @@ export type Quiz = Document & {
         isCorrect: string;
         optionText: string;
       }[];
+      isMoleQuestion: boolean;
     }
   ];
 };

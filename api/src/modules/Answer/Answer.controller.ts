@@ -27,6 +27,14 @@ const AnswerBodySchema = z.object({
     .array(z.object({ questionId: z.string(), userAnswer: z.string() }))
     .min(1, { message: "At least one answer is required" }),
 });
+// ——————————————
+// Zod schema for incoming AnswerBody
+// isCorrect / pointsAwarded / totalScore are NOT accepted from client — computed server-side
+// ——————————————
+const MoleCalculationSchema = z.object({
+  mole: z.string(),
+  function: z.enum(['read', 'submit'])
+});
 
 // ——————————————
 // Controller: get a single answer detail
@@ -210,99 +218,6 @@ const getCurrentUserAndWeekAnswer = async (
   }
 };
 
-// ——————————————
-// Utility: close out past answers
-// ——————————————
-const closeOldAnswers = async () => {
-  try {
-    const currentWeek = await getActiveWeek();
-    const currentWeekQuiz = await Quiz.findOne({ week: currentWeek });
-    if (!currentWeekQuiz) return;
-    const answers = await answerModel.find({
-      quizId: { $ne: currentWeekQuiz._id },
-      closed: false,
-    });
-    for (const answer of answers) {
-      logger.info("Closing old answer", { answerId: String(answer._id) });
-      answer.closed = true;
-      await answer.save();
-    }
-  } catch (e) {
-    logger.error("Failed to close old answers", {
-      error: e instanceof Error ? e.message : String(e),
-    });
-  }
-};
-
-// ——————————————
-// Utility: award bonus points & close remaining open answers
-// ——————————————
-const givePoints = async () => {
-  const person = "Alexy";
-  const priceMoney = 27910;
-  const priceMoneyPoints = 2;
-  const eliminationPoints = 5;
-
-  const answers = await answerModel.find({ closed: false });
-  if (answers.length === 0) {
-    logger.info("No open answers to grade");
-    return;
-  }
-
-  const priceMoneyData = answers.map((ansDoc) => {
-    const raw = ansDoc.answers[4].userAnswer || "";
-    const numericString = raw.replace(/\D/g, "");
-    const guess = parseInt(numericString, 10) || 0;
-    return {
-      ansDoc,
-      elimGuess: ansDoc.answers[3].userAnswer,
-      diff: Math.abs(guess - priceMoney),
-    };
-  });
-
-  const minDiff = Math.min(...priceMoneyData.map((r) => r.diff));
-
-  for (const { ansDoc, elimGuess, diff } of priceMoneyData) {
-    let points = 0;
-    const reasons: string[] = [];
-
-    if (elimGuess === person) {
-      points += eliminationPoints;
-      reasons.push("correct elimination guess");
-    }
-    if (diff === minDiff) {
-      points += priceMoneyPoints;
-      reasons.push("closest prize‑money guess");
-    }
-
-    const user = await UserModel.findById(ansDoc.userId);
-    if (!user) {
-      logger.warn("User not found for answer", {
-        userId: String(ansDoc.userId),
-        answerId: String(ansDoc._id),
-      });
-      continue;
-    }
-    user.score = (user.score || 0) + points;
-    await user.save();
-
-    ansDoc.closed = true;
-    await ansDoc.save();
-
-    const reasonText = reasons.length
-      ? `(${reasons.join(" & ")})`
-      : "(no points awarded)";
-    logger.info("Bonus points awarded", {
-      userName: user.name,
-      points,
-      reason: reasonText,
-    });
-  }
-
-  logger.info("All open answers have been graded and closed");
-};
-// givePoints()
-
 export const checkMoleAnswers = async () => {
   const mole = "sarah";
   const points = 3;
@@ -335,13 +250,127 @@ export const checkMoleAnswers = async () => {
 
   logger.info("All mole-guesses have been checked");
 };
-// checkMoleAnswers();
+
+const getMoleCalculation = async (
+  req: Request,
+  res: Response,
+) => {
+  const POINTS_AWARDED = 3
+  // 1) Validate the incoming body
+  const parseResult = MoleCalculationSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({ errors: parseResult.error.errors });
+  }
+  const body = parseResult.data;
+  const callFunction = body.function
+
+  // 2) Grab authenticated user
+  const { user } = req as AuthRequest;
+
+  if (user.role !== "ADMIN")
+    return res.status(403).json({ message: "Forbidden" });
+
+  // 3) Get all users and their old scores
+
+  const users = await UserModel.find({})
+
+  const oldUserScores = users.map((user) => {
+    return {
+      _id: user._id,
+      name: user.name,
+      oldScore: user.score
+    }
+  }
+  )
+
+  // 4) Get all answers
+
+  const answers = await answerModel.find({});
+  if (answers.length === 0) {
+    throw new notFoundError("No answers found")
+  }
+
+  // Batch-load every quiz referenced by these answers so we can resolve the
+  // mole question per answer without N+1 round-trips.
+  const quizIds = [...new Set(answers.map((a) => String(a.quizId)))];
+  const quizzes = await Quiz.find({ _id: { $in: quizIds } }).lean();
+  const quizById = new Map(quizzes.map((q) => [String(q._id), q]));
+
+  const targetMole = body.mole.trim().toLowerCase();
+
+  const quizzesWithMole = quizzes.filter((q) =>
+    q.questions.some((qq) => qq.isMoleQuestion)
+  ).length;
+  logger.info("Mole calculation diagnostic", {
+    targetMole,
+    totalAnswers: answers.length,
+    totalQuizzes: quizzes.length,
+    quizzesWithMoleQuestion: quizzesWithMole,
+  });
+
+  const hitsByUserId = new Map<string, number>();
+  let consideredAnswers = 0;
+  let guessesSeen: string[] = [];
+
+  for (const answer of answers) {
+    const quiz = quizById.get(String(answer.quizId));
+    if (!quiz) continue;
+
+    const moleQuestion = quiz.questions.find((q) => q.isMoleQuestion);
+    if (!moleQuestion) continue;
+
+    const moleSubmission = answer.answers.find(
+      (a) => a.questionId === moleQuestion.questionId
+    );
+    if (!moleSubmission) continue;
+
+    consideredAnswers++;
+    const guessed = moleSubmission.userAnswer.trim().toLowerCase();
+    guessesSeen.push(guessed);
+    if (guessed !== targetMole) continue;
+
+    const userId = String(answer.userId);
+    hitsByUserId.set(userId, (hitsByUserId.get(userId) ?? 0) + 1);
+  }
+
+  if (callFunction === "submit") {
+    for (const [userId, hits] of hitsByUserId) {
+      if (hits === 0) continue;
+      await UserModel.updateOne(
+        { _id: userId },
+        { $inc: { score: hits * POINTS_AWARDED } }
+      );
+    }
+  }
+
+  logger.info("Mole calculation result", {
+    consideredAnswers,
+    matchedUsers: hitsByUserId.size,
+    totalHits: [...hitsByUserId.values()].reduce((s, n) => s + n, 0),
+    sampleGuesses: guessesSeen.slice(0, 10),
+  });
+
+  // 5) Formulate response array
+  const response = oldUserScores.map((u) => {
+    const hits = hitsByUserId.get(String(u._id)) ?? 0;
+    return {
+      user: {
+        _id: u._id,
+        name: u.name,
+      },
+      oldScore: u.oldScore,
+      newScore: u.oldScore + hits * POINTS_AWARDED,
+    };
+  });
+
+  res.json(response.filter((user) => user.oldScore !== 0 && user.newScore !== 0)
+  );
+}
 
 export {
   createAnswer,
   getAnswerDetail,
   getAnswersForQuiz,
   getCurrentUserAndWeekAnswer,
-  closeOldAnswers,
-  givePoints,
+  getMoleCalculation
 };

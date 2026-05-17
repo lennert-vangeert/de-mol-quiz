@@ -64,6 +64,7 @@ export type QuizInput = {
     points: number;
     questionType: "multiple-choice" | "open";
     options?: { optionText: string; isCorrect: string }[];
+    isMoleQuestion: boolean;
   }[];
 };
 
@@ -108,6 +109,15 @@ export type AdminScoreBoardEntry = {
   type: "private" | "corporate";
 };
 
+export type MoleCalculationOutput = {
+  user: {
+    _id: string;
+    name: string;
+  },
+  oldScore: number,
+  newScore: number,
+}
+
 export const getAdminScoreBoard = async (): Promise<AdminScoreBoardEntry[]> => {
   const response = await API.get<AdminScoreBoardEntry[]>("scoreBoard/all", {
     headers: { authorization: `Bearer ${TOKEN}` },
@@ -124,7 +134,34 @@ export const getContestants = async (): Promise<Contestant[]> => {
   return response.data;
 };
 
-export type AppConfig = { week: number; season: number };
+export const createContestant = async (name: string): Promise<Contestant> => {
+  const response = await API.post<Contestant>(
+    "contestants",
+    { name },
+    { headers: { authorization: `Bearer ${TOKEN}` } }
+  );
+  return response.data;
+};
+
+export const updateContestant = async (
+  id: string,
+  name: string
+): Promise<Contestant> => {
+  const response = await API.put<Contestant>(
+    `contestants/${id}`,
+    { name },
+    { headers: { authorization: `Bearer ${TOKEN}` } }
+  );
+  return response.data;
+};
+
+export const deleteContestant = async (id: string): Promise<void> => {
+  await API.delete(`contestants/${id}`, {
+    headers: { authorization: `Bearer ${TOKEN}` },
+  });
+};
+
+export type AppConfig = { week: number; season: number; showWinner: boolean };
 
 export const getConfig = async (): Promise<AppConfig> => {
   const response = await API.get<AppConfig>("config", {
@@ -157,3 +194,27 @@ export const getScoreBoard = async (): Promise<scoreBoardOutput[]> => {
   })) as { data: scoreBoardOutput[] };
   return response.data;
 };
+
+export const getMoleCalculations = async (mole: string): Promise<MoleCalculationOutput[]> => {
+  const response = (await API.post("mole-calculation", {
+    function: "read", mole
+  }, {
+    headers: {
+      authorization: `Bearer ${TOKEN}`,
+    },
+  })) as { data: MoleCalculationOutput[] };
+  return response.data;
+}
+
+export const setMoleCalculations = async (mole: string): Promise<MoleCalculationOutput[]> => {
+  const response = (await API.post("mole-calculation", {
+    function: "submit",
+    mole
+  }, {
+    headers: {
+      authorization: `Bearer ${TOKEN}`,
+    },
+  })) as { data: MoleCalculationOutput[] };
+  return response.data;
+}
+

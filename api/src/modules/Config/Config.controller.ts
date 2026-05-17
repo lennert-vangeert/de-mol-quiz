@@ -6,15 +6,13 @@ import { AuthRequest } from "../../middleware/auth/authMiddleware";
 const ConfigBodySchema = z.object({
   week: z.number().int().min(0).optional(),
   season: z.number().int().min(0).optional(),
+  showWinner: z.boolean().optional(),
 });
 
-const getConfig = async (req: Request, res: Response, next: NextFunction) => {
+const getConfig = async (_req: Request, res: Response, next: NextFunction) => {
   try {
-    const { user } = req as AuthRequest;
-    if (user.role !== "ADMIN")
-      return res.status(403).json({ message: "Forbidden" });
     const config = await ConfigModel.findOne({});
-    res.json(config ?? { week: 0, season: 0 });
+    res.json(config ?? { week: 0, season: 0, showWinner: false });
   } catch (e) {
     next(e);
   }

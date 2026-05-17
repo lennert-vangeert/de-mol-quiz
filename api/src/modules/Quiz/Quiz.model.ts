@@ -21,6 +21,7 @@ const quizSchema = new mongoose.Schema<Quiz>(
             optionText: { type: String, required: true },
           },
         ],
+        isMoleQuestion: { type: Boolean, required: true }
       },
     ],
   },
