@@ -161,7 +161,7 @@ export const deleteContestant = async (id: string): Promise<void> => {
   });
 };
 
-export type AppConfig = { week: number; season: number; showWinner: boolean };
+export type AppConfig = { week: number; season: number; showWinner: boolean, isClosed: boolean };
 
 export const getConfig = async (): Promise<AppConfig> => {
   const response = await API.get<AppConfig>("config", {

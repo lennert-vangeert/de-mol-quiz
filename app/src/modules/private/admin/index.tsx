@@ -8,7 +8,7 @@ import {
   type AdminScoreBoardEntry,
   type Contestant,
 } from "@global/api/requests";
-import CurrentWeekCard from "./components/CurrentWeekCard";
+import ConfigCard from "./components/configCard";
 import ScoreboardsSection from "./components/ScoreboardsSection";
 import ContestantsCard from "./components/ContestantsCard";
 import QuizList from "./components/QuizList";
@@ -23,6 +23,7 @@ const AdminPage = () => {
   const [currentWeek, setCurrentWeek] = useState<number>(1);
   const [season, setSeason] = useState<number>(0);
   const [showWinner, setShowWinner] = useState<boolean>(false);
+  const [isClosed, setIsClosed] = useState<boolean>(false);
   const [editingQuiz, setEditingQuiz] = useState<QuizFromApi | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +42,7 @@ const AdminPage = () => {
       setCurrentWeek(configRes.week);
       setSeason(configRes.season);
       setShowWinner(configRes.showWinner);
+      setIsClosed(configRes.isClosed);
     } catch {
       setError("Kon data niet laden.");
     } finally {
@@ -86,10 +88,11 @@ const AdminPage = () => {
         </Text>
       )}
 
-      <CurrentWeekCard
+      <ConfigCard
         initialWeek={currentWeek}
         initialSeason={season}
         initialShowWinner={showWinner}
+        initialClosed={isClosed}
         onSaved={fetchData}
         onError={setError}
       />

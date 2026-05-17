@@ -7,12 +7,13 @@ const ConfigBodySchema = z.object({
   week: z.number().int().min(0).optional(),
   season: z.number().int().min(0).optional(),
   showWinner: z.boolean().optional(),
+  isClosed: z.boolean().optional(),
 });
 
 const getConfig = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const config = await ConfigModel.findOne({});
-    res.json(config ?? { week: 0, season: 0, showWinner: false });
+    res.json(config ?? { week: 0, season: 0, showWinner: false, isClosed: false });
   } catch (e) {
     next(e);
   }

@@ -13,6 +13,10 @@ type AppState = {
   //USER
   userRole: "ADMIN" | "REGULAR" | null;
   setUserRole: (role: "ADMIN" | "REGULAR" | null) => void;
+
+  //QUIZ STATE
+  isQuizClosed: boolean;
+  setIsQuizClosed: (value: boolean) => void;
 };
 
 export default create<AppState>()(
@@ -31,5 +35,9 @@ export default create<AppState>()(
       set({
         userRole: role,
       }),
+
+    //QUIZ STATE
+    isQuizClosed: false,
+    setIsQuizClosed: (value: boolean) => set({ isQuizClosed: value }),
   }))
 );

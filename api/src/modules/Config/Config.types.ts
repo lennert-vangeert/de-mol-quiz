@@ -4,4 +4,5 @@ export type Config = Document & {
   week: number;
   season: number;
   showWinner: boolean;
+  isClosed: boolean;
 };

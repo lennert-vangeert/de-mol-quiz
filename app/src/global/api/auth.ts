@@ -5,6 +5,19 @@ export const API = axios.create({
   baseURL: import.meta.env.VITE_API_ORIGIN as string,
 });
 
+API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (
+      error?.response?.status === 423 &&
+      error?.response?.data?.code === "QUIZ_CLOSED"
+    ) {
+      useApp.getState().setIsQuizClosed(true);
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const TOKEN = window.localStorage.getItem("token");
 export let USERID: string;
 

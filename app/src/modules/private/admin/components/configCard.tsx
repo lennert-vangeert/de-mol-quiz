@@ -14,26 +14,29 @@ type Props = {
   initialWeek: number;
   initialSeason: number;
   initialShowWinner: boolean;
+  initialClosed: boolean;
   onSaved: () => void;
   onError: (message: string) => void;
 };
 
-const CurrentWeekCard = ({
+const ConfigCard = ({
   initialWeek,
   initialSeason,
   initialShowWinner,
+  initialClosed,
   onSaved,
   onError,
 }: Props) => {
   const [week, setWeek] = useState(initialWeek);
   const [season, setSeason] = useState(initialSeason);
   const [showWinner, setShowWinner] = useState(initialShowWinner);
+  const [isClosed, setIsClosed] = useState(initialClosed);
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      await updateConfig({ week, season, showWinner });
+      await updateConfig({ week, season, showWinner, isClosed });
       onSaved();
     } catch {
       onError("Config opslaan mislukt.");
@@ -67,6 +70,11 @@ const CurrentWeekCard = ({
           checked={showWinner}
           onChange={(e) => setShowWinner(e.currentTarget.checked)}
         />
+        <Switch
+          label="Is de mol-quiz gesloten"
+          checked={isClosed}
+          onChange={(e) => setIsClosed(e.currentTarget.checked)}
+        />
       </Stack>
       <Group justify="flex-end" mt="md">
         <Button onClick={handleSave} loading={saving}>
@@ -77,4 +85,4 @@ const CurrentWeekCard = ({
   );
 };
 
-export default CurrentWeekCard;
+export default ConfigCard;

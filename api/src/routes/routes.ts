@@ -6,6 +6,7 @@ import userPrivateRoutes from "../modules/Users/User.private.routes";
 import contestantRoutes from "../modules/Contestant/Contestant.routes";
 import configRoutes from "../modules/Config/Config.routes";
 import { authJwt } from "../middleware/auth/authMiddleware";
+import { quizClosedMiddleware } from "../middleware/quizClosed/quizClosedMiddleware";
 import { errorHandler } from "../middleware/error/errorHandlerMiddleware";
 import { logger } from "../utils/logger";
 
@@ -19,7 +20,7 @@ const registerRoutes = (app: Express) => {
   authRoutes.use("/", contestantRoutes);
   authRoutes.use("/", configRoutes);
 
-  app.use(authJwt, authRoutes);
+  app.use(authJwt, quizClosedMiddleware, authRoutes);
 
   logger.info("Routes registered", {
     publicRoutes: ["users public"],
