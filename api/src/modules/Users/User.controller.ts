@@ -4,6 +4,7 @@ import { z } from "zod";
 import User from "./User.model";
 import { AuthRequest } from "../../middleware/auth/authMiddleware";
 import { logger } from "../../utils/logger";
+import { getActiveSeason } from "../Config/Config.controller";
 
 // ————————————————————————
 // Zod schemas for all request bodies
@@ -112,10 +113,15 @@ const getScoreBoard = async (
   logger.debug("Getting scoreboard");
   try {
     const { user } = req as AuthRequest;
-    const scoreBoard = await User.find({ type: user.type, role: "REGULAR" })
-      .sort({ score: -1 })
-      .limit(10)
-      .select("name score");
+    const activeSeason = await getActiveSeason();
+    const seasonKey = `$scoresBySeason.${activeSeason}`;
+    const scoreBoard = await User.aggregate([
+      { $match: { type: user.type, role: "REGULAR" } },
+      { $addFields: { score: { $ifNull: [seasonKey, 0] } } },
+      { $sort: { score: -1 } },
+      { $limit: 10 },
+      { $project: { name: 1, score: 1 } },
+    ]);
     res.json(scoreBoard);
   } catch (error) {
     next(error);
@@ -289,9 +295,14 @@ const getFullScoreBoard = async (
     const { user } = req as AuthRequest;
     if (user.role !== "ADMIN")
       return res.status(403).json({ message: "Forbidden" });
-    const scoreBoard = await User.find({ role: "REGULAR" })
-      .sort({ score: -1 })
-      .select("name score type");
+    const activeSeason = await getActiveSeason();
+    const seasonKey = `$scoresBySeason.${activeSeason}`;
+    const scoreBoard = await User.aggregate([
+      { $match: { role: "REGULAR" } },
+      { $addFields: { score: { $ifNull: [seasonKey, 0] } } },
+      { $sort: { score: -1 } },
+      { $project: { name: 1, score: 1, type: 1 } },
+    ]);
     res.json(scoreBoard);
   } catch (error) {
     next(error);

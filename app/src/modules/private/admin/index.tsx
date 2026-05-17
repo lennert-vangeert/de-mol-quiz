@@ -1,5 +1,5 @@
 import { Box, Center, Divider, Loader, Text, Title } from "@mantine/core";
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect } from "react";
 import {
   getAllQuizzes,
   getAdminScoreBoard,
@@ -27,29 +27,30 @@ const AdminPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [quizRes, scoreRes, contestantRes, configRes] = await Promise.all([
-          getAllQuizzes(),
-          getAdminScoreBoard(),
-          getContestants(),
-          getConfig(),
-        ]);
-        setQuizzes((quizRes.data as QuizFromApi[]) ?? []);
-        setScoreBoard(scoreRes);
-        setContestants(contestantRes);
-        setCurrentWeek(configRes.week);
-        setSeason(configRes.season);
-        setShowWinner(configRes.showWinner);
-      } catch {
-        setError("Kon data niet laden.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
+  const fetchData = useCallback(async () => {
+    try {
+      const [quizRes, scoreRes, contestantRes, configRes] = await Promise.all([
+        getAllQuizzes(),
+        getAdminScoreBoard(),
+        getContestants(),
+        getConfig(),
+      ]);
+      setQuizzes((quizRes.data as QuizFromApi[]) ?? []);
+      setScoreBoard(scoreRes);
+      setContestants(contestantRes);
+      setCurrentWeek(configRes.week);
+      setSeason(configRes.season);
+      setShowWinner(configRes.showWinner);
+    } catch {
+      setError("Kon data niet laden.");
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   if (loading) {
     return (
@@ -89,6 +90,7 @@ const AdminPage = () => {
         initialWeek={currentWeek}
         initialSeason={season}
         initialShowWinner={showWinner}
+        onSaved={fetchData}
         onError={setError}
       />
 

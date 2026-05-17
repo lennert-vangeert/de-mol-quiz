@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import Quiz from "./Quiz.model";
 import ConfigModel from "../Config/Config.model";
+import { getActiveSeason } from "../Config/Config.controller";
 import { AuthRequest } from "../../middleware/auth/authMiddleware";
 import notFoundError from "../../middleware/error/NothingFoundError";
 
@@ -12,7 +13,8 @@ const getCurrentQuiz = async (
   try {
     const config = await ConfigModel.findOne({});
     const currentWeek = config?.week ?? 0;
-    const quiz = await Quiz.findOne({ week: currentWeek });
+    const activeSeason = config?.season ?? 1;
+    const quiz = await Quiz.findOne({ week: currentWeek, season: activeSeason });
     if (!quiz) {
       res.status(404).json({ message: "No quiz found" });
       return;
@@ -28,7 +30,8 @@ const createQuiz = async (req: Request, res: Response, next: NextFunction) => {
     const { user } = req as AuthRequest;
     if (user.role !== "ADMIN")
       return res.status(403).json({ message: "Forbidden" });
-    const quiz = new Quiz({ ...req.body });
+    const activeSeason = await getActiveSeason();
+    const quiz = new Quiz({ ...req.body, season: activeSeason });
     const result = await quiz.save();
     res.status(200).json(result);
   } catch (e) {
@@ -62,7 +65,8 @@ const getAllQuizzes = async (
     const { user } = req as AuthRequest;
     if (user.role !== "ADMIN")
       return res.status(403).json({ message: "Forbidden" });
-    const quizzes = await Quiz.find({}).sort({ week: -1 });
+    const activeSeason = await getActiveSeason();
+    const quizzes = await Quiz.find({ season: activeSeason }).sort({ week: -1 });
     res.json(quizzes);
   } catch (e) {
     next(e);

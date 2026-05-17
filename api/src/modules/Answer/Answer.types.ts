@@ -13,4 +13,5 @@ export type Answer = Document & {
   }[];
   totalScore: number;
   closed: boolean;
+  season: number;
 };

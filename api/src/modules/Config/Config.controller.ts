@@ -41,4 +41,9 @@ const updateConfig = async (
   }
 };
 
-export { getConfig, updateConfig };
+const getActiveSeason = async (): Promise<number> => {
+  const config = await ConfigModel.findOne({});
+  return config?.season ?? 1;
+};
+
+export { getConfig, updateConfig, getActiveSeason };

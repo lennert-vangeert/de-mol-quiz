@@ -46,6 +46,10 @@ const answerSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    season: {
+      type: Number,
+      required: true,
+    },
   },
   {
     timestamps: true,

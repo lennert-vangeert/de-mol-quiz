@@ -7,6 +7,7 @@ import ConfigModel from "../Config/Config.model";
 import answerModel from "./Answer.model";
 import UserModel from "../Users/User.model";
 import { logger } from "../../utils/logger";
+import { getActiveSeason } from "../Config/Config.controller";
 
 // ——————————————
 // Helper: get the active week from Config DB
@@ -171,6 +172,7 @@ const createAnswer = async (
     );
 
     // 6) Persist the new answer
+    const activeSeason = await getActiveSeason();
     const answer = new answerModel({
       quizId: body.quizId,
       userId: user._id,
@@ -178,16 +180,16 @@ const createAnswer = async (
       answers: scoredAnswers,
       totalScore,
       closed: false,
+      season: activeSeason,
     });
     const result = await answer.save();
 
-    // 7) Update user's total score
-    const dbUser = await UserModel.findById(user._id);
-    if (!dbUser) {
-      throw new notFoundError("User not found");
-    }
-    dbUser.score += totalScore;
-    await dbUser.save();
+    // 7) Update user's season score
+    const seasonKey = String(activeSeason);
+    await UserModel.updateOne(
+      { _id: user._id },
+      { $inc: { [`scoresBySeason.${seasonKey}`]: totalScore } }
+    );
 
     // 8) Respond & fire off emails
     res.json(result);
@@ -207,7 +209,11 @@ const getCurrentUserAndWeekAnswer = async (
   try {
     const { user } = req as AuthRequest;
     const currentWeek = await getActiveWeek();
-    const currentWeekQuiz = await Quiz.findOne({ week: currentWeek });
+    const activeSeason = await getActiveSeason();
+    const currentWeekQuiz = await Quiz.findOne({
+      week: currentWeek,
+      season: activeSeason,
+    });
     const answer = await answerModel.findOne({
       userId: user._id,
       quizId: currentWeekQuiz?._id,
@@ -270,7 +276,10 @@ const getMoleCalculation = async (
   if (user.role !== "ADMIN")
     return res.status(403).json({ message: "Forbidden" });
 
-  // 3) Get all users and their old scores
+  // 3) Get all users and their old scores for the active season
+
+  const activeSeason = await getActiveSeason();
+  const seasonKey = String(activeSeason);
 
   const users = await UserModel.find({})
 
@@ -278,14 +287,14 @@ const getMoleCalculation = async (
     return {
       _id: user._id,
       name: user.name,
-      oldScore: user.score
+      oldScore: user.scoresBySeason?.get(seasonKey) ?? 0,
     }
   }
   )
 
-  // 4) Get all answers
+  // 4) Get all answers for the active season
 
-  const answers = await answerModel.find({});
+  const answers = await answerModel.find({ season: activeSeason });
   if (answers.length === 0) {
     throw new notFoundError("No answers found")
   }
@@ -338,7 +347,7 @@ const getMoleCalculation = async (
       if (hits === 0) continue;
       await UserModel.updateOne(
         { _id: userId },
-        { $inc: { score: hits * POINTS_AWARDED } }
+        { $inc: { [`scoresBySeason.${seasonKey}`]: hits * POINTS_AWARDED } }
       );
     }
   }

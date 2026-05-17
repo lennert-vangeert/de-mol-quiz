@@ -3,6 +3,7 @@ import { z } from "zod";
 import Contestant from "./Contestant.model";
 import { AuthRequest } from "../../middleware/auth/authMiddleware";
 import notFoundError from "../../middleware/error/NothingFoundError";
+import { getActiveSeason } from "../Config/Config.controller";
 
 const ContestantBodySchema = z.object({
   name: z.string().trim().min(1),
@@ -23,7 +24,10 @@ const getContestants = async (
   next: NextFunction
 ) => {
   try {
-    const contestants = await Contestant.find({}).sort({ name: 1 });
+    const activeSeason = await getActiveSeason();
+    const contestants = await Contestant.find({ season: activeSeason }).sort({
+      name: 1,
+    });
     res.json(contestants);
   } catch (e) {
     next(e);
@@ -41,7 +45,11 @@ const createContestant = async (
     if (!parsed.success) {
       return res.status(400).json({ errors: parsed.error.errors });
     }
-    const created = await Contestant.create(parsed.data);
+    const activeSeason = await getActiveSeason();
+    const created = await Contestant.create({
+      ...parsed.data,
+      season: activeSeason,
+    });
     res.status(201).json(created);
   } catch (e) {
     next(e);

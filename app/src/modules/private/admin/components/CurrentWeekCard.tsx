@@ -14,6 +14,7 @@ type Props = {
   initialWeek: number;
   initialSeason: number;
   initialShowWinner: boolean;
+  onSaved: () => void;
   onError: (message: string) => void;
 };
 
@@ -21,6 +22,7 @@ const CurrentWeekCard = ({
   initialWeek,
   initialSeason,
   initialShowWinner,
+  onSaved,
   onError,
 }: Props) => {
   const [week, setWeek] = useState(initialWeek);
@@ -32,6 +34,7 @@ const CurrentWeekCard = ({
     setSaving(true);
     try {
       await updateConfig({ week, season, showWinner });
+      onSaved();
     } catch {
       onError("Config opslaan mislukt.");
     } finally {

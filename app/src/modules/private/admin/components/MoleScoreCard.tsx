@@ -14,7 +14,6 @@ const MoleScoreCard = ({ contestants }: Props) => {
 
   const handleCalculation = useCallback(async () => {
     const output = await getMoleCalculations(mole ?? '')
-    console.log(output)
     setMoleCalculationOutput(output)
   }, [mole])
 
@@ -29,7 +28,7 @@ const MoleScoreCard = ({ contestants }: Props) => {
   }, [contestants])
 
   useEffect(() => {
-    setMole(contestants[0].name)
+    setMole(contestants[0]?.name ?? null)
   }, [contestants])
 
   return (<Paper withBorder p="md" >

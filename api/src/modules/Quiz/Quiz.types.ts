@@ -3,6 +3,7 @@ import { Document, ObjectId } from "mongoose";
 export type Quiz = Document & {
   _id?: string;
   week: number;
+  season: number;
   questions: [
     {
       questionId: string;

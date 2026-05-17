@@ -11,6 +11,7 @@ export type User = Document &
     role: "ADMIN" | "REGULAR";
     type: "private" | "corporate";
     score: number;
+    scoresBySeason: Map<string, number>;
     name: string;
     receiveEmails: boolean;
     resetPasswordCode: string | null;

@@ -36,6 +36,11 @@ const userSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    scoresBySeason: {
+      type: Map,
+      of: Number,
+      default: {},
+    },
     name: {
       type: String,
       required: true,
